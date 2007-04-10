@@ -1,14 +1,11 @@
 {-#  OPTIONS -fglasgow-exts -fno-warn-missing-fields  #-}
 
--- | A pure implementation of mutable variables. 
+-- | A pure specification of mutable variables. 
 module Test.IOSpec.IORef 
    (
     -- * The IOState monad
      IOState
    , runIORef
-   , step
-   , Store (..)
-   , emptyStore
     -- * Manipulation of IORefs
    , IORef
    , newIORef

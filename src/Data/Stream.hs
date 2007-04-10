@@ -1,5 +1,5 @@
--- | A module defining infinite lists. Most operations on streams
--- are completely analogous to the definition in 'Data.List'
+-- | Streams are infinite lists. Most operations on streams are
+-- completely analogous to the definition in Data.List.
 
 module Data.Stream
    (

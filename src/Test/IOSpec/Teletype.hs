@@ -2,7 +2,7 @@
 
 module Test.IOSpec.Teletype
    (
-   -- * The IOTeletype monad and how to run it
+   -- * The IOTeletype monad
      IOTeletype
    , Output(..)
    , runTT
@@ -33,7 +33,7 @@ instance Monad IOTeletype where
   (PutChar c a)       >>= g     = PutChar c (a >>= g)
 
 
--- | Once you have constructed something of type |IOTeletype| you
+-- | Once you have constructed something of type 'IOTeletype' you
 -- can run the interaction. If you pass in a stream of characters
 -- entered at the teletype, it will produce a value of type 'Output'
 runTT :: IOTeletype a -> Stream.Stream Char -> Output a
