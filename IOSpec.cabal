@@ -1,0 +1,16 @@
+Name:		        IOSpec
+Version:        	0.1
+License:        	BSD3
+License-file:		LICENSE
+Author:			Wouter Swierstra
+Maintainer:     	Wouter Swierstra <wss@cs.nott.ac.uk>
+Homepage:       	http://www.cs.nott.ac.uk/~wss/!!!
+Synopsis:       	A pure specification of (parts of) the IO monad.
+Description:    	Lorem ipsum sic dolor amet.!!!
+Category:       	Test
+Build-Depends:  	base, mtl, QuickCheck 
+Hs-source-dirs: 	src
+Exposed-modules:	Data.Stream
+			, Test.IOSpec.Teletype
+			, Test.IOSpec.IORef
+			, Test.IOSpec.Concurrent
