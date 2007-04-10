@@ -14,7 +14,7 @@ Description:		At the moment this package consists of three
 			There are several examples included in the examples directory.
 Category:       	Test
 Build-Depends:  	base, mtl, QuickCheck 
-Hs-source-dirs: 	src
+Hs-source-dir:		src
 Exposed-modules:	Data.Stream
 			, Test.IOSpec
 			, Test.IOSpec.Teletype
