@@ -1,6 +1,8 @@
-IOSpec
+IOSpec version 0.1
+  Author: Wouter Swierstra <wss@cs.nott.ac.uk>
 
-what is it
+IOSpec provides a library containing pure, executable specifications
+of a few functions from the IO monad. 
 
 Build instructions:
 
@@ -8,17 +10,18 @@ Build instructions:
     $ runhaskell Setup.lhs build
     $ runhaskell Setup.lhs install
 
-See http:/cabal for full instructions.
+See http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html for more instructions.
 
-examples
+Documentation:
 
+Please have a look at the documentation available from:
+  http://www.cs.nott.ac.uk/~wss/repos/IOSpec
 
-Which is the latest version?
-What state is it in?
-What are its aims?
-Where is the documentation?
-Which is the right version for given OS and Haskell implementation?
-How is it packaged, and what tools are needed to get and unpack it?
-How is it installed, and what tools are needed to install it?
-How do we handle dependencies?
-How do we provide/acquire the knowledge and tool-chains needed?
+Examples:
+
+Check out the examples directory for the following examples:
+
+  * Echo.hs - how to show that echo really does what we know it does.
+  * IORefProps.hs - a few properties of IORefs in Haskell.
+  * Queues.hs - an implementation of queues using IORefs.
+  * Channels.hs - an implementation of channels using MVars.

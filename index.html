@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Mac OS X (vers 1st December 2004), see www.w3.org">
+
+<style type="text/css" title="currentStyle">
+
+  /* text margins and font */
+  body
+  {
+    font:14px verdana, sans-serif;
+    color: #2c2c2c;    
+    margin: 2ex 7.5% 2ex 7.5%;
+    padding-bottom: 2ex;
+  }
+
+  /* Header with border */
+  h1 
+  {
+    border-bottom-style: solid;
+    border-color: #404040;
+    border-width: 1px;
+    padding-bottom: 0.25ex;
+    
+  }
+  
+  /* Headers colour */
+  h1,h2,h3,h4 
+  {
+    color:#4070C0
+  }
+
+  /* link colouring */
+  a:link 
+  {
+    color: #0078FF;
+    text-decoration: none;
+  }
+
+  /* visited link coloring */
+  a:visited 
+  {
+    color: #880000;
+    text-decoration: none;
+  }
+
+  pre
+  {
+    border: 2px solid gray;
+    padding: 1px;
+    padding-left: 5px;
+    margin-left: 10px;
+    background-color: #eee;
+  }
+
+  pre.define
+  {
+    background-color: #ffb;
+    border-color: #cc0;
+  }
+
+
+  /* footer style */
+  p.footer
+  {
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-color: #404040;
+    padding-top:1ex;
+    color: #878787;
+    font-family: Helvetica;
+    font-size: 75%;
+    text-align: right;
+  }
+
+</style>
+
+  <title>IOSpec</title>
+</head>
+
+<body>
+  <h1>IOSpec: a pure specification of the IO monad</h1>
+
+  <p>IOSpec is a library containing a pure specification of several
+  functions in the IO monad. You can use these specifications to
+  test, debug, or reason about impure code.</p>
+
+  <p>To get a taste of what you can do, consider the following (not
+  terribly exciting) code snippet:</p>
+  <pre>
+  import Test.IOSpec.IORef
+
+  writer :: Int -&gt; IOState Int
+  writer x = do ref &lt;- newIORef x
+                readIORef ref
+                 
+  writeIORefProp :: Int -&gt; Bool
+  writeIORefProp x = runIOState (writer x) == x 
+</pre>
+
+  <p>Sure enough, we can QuickCheck the above property and learn
+  what we knew all along: reading a freshly initialised IORef
+  returns the value it was initialised with.</p>
+
+  <h2>Download</h2>
+
+  <p>Feel free to download <a href="dist/IOSpec-0.1.tar.gz">a
+  tarball containing the sources</a>.</p>
+
+  <p>Alternatively, you may want to check out the following darcs
+  repository:</p>
+  <pre>
+darcs get http://www.cs.nott.ac.uk/~wss/repos/IOSpec
+</pre>
+
+  <h2>Installation</h2>The library is fully cabalised. To install
+  it just issue the following commands:
+  <pre>
+  runhaskell Setup.lhs configure
+  runhaskell Setup.lhs build
+  runhaskell Setup.lhs install
+</pre>If you want to customise the installation process, you may
+want to read more about <a href=
+"http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html">
+  Cabal</a>.
+
+  <h2>Documentation</h2>
+
+  <p>The examples directory that comes with the sources contains
+  several examples. I hope to write a basic manual shortly.</p>
+
+  <p>If you're interested in the implementation, have a look at the
+  following paper:</p>
+
+  <ul>
+    <li><a href=
+    "http://www.cs.nott.ac.uk/~wss/Publications/icfp07.pdf">Beauty
+    in the Beast: A Functional Semantics for the Awkward
+    Squad</a></li>
+  </ul>
+
+  <h2>Feedback</h2><img style="float: right" width="102" height=
+  "35" src="www/cabal.png" alt="Cabal">
+
+  <p>If you have any comments or suggestions, please get in
+  touch!</p>Wouter Swierstra<br>
+  <img src="www/email.jpg" alt="Email address">
+</body>
+</html>
