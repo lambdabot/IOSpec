@@ -6,12 +6,18 @@ Author:			Wouter Swierstra
 Maintainer:     	Wouter Swierstra <wss@cs.nott.ac.uk>
 Homepage:       	http://www.cs.nott.ac.uk/~wss/repos/IOSpec
 Synopsis:       	A pure specification of the IO monad.
-Description:		At the moment this package consists of three 
+Description:		At the moment this package consists of four 
 			modules:
-                          * Teletype: specification of getChar and putChar
-			  * IORef: specification of most functions on IORefs.
-			  * Concurrent: specification of forkIO and MVars.
-			There are several examples included in the examples directory.
+			.
+                           * "Test.IOSpec.Teletype": a specification of 'getChar' and 'putChar'.
+			.
+			   * "Test.IOSpec.IORef": a specification of most functions on 'IORefs'.
+			.
+			   * "Test.IOSpec.Concurrent": specification of 'forkIO' and 'MVars'.
+			.
+			   * "Data.Stream": a library for manipulating infinite lists.
+			.
+			There are several examples included with the source distribution.
 Category:       	Test
 Build-Depends:  	base, mtl, QuickCheck 
 Hs-source-dirs:		src
