@@ -5,7 +5,7 @@ module Test.IOSpec.IORef
    (
     -- * The IOState monad
      IOState
-   , runIORef
+   , runIOState
     -- * Manipulation of IORefs
    , IORef
    , newIORef
@@ -72,9 +72,9 @@ type Heap = Loc -> Data
 emptyStore :: Store
 emptyStore = Store {fresh = 0}
 
--- | The 'runIORef' function executes a computation in the `IOState' monad.
-runIORef :: IOState a -> a
-runIORef io = evalState (step io) emptyStore
+-- | The 'runIOState' function executes a computation in the `IOState' monad.
+runIOState :: IOState a -> a
+runIOState io = evalState (step io) emptyStore
 
 step :: IOState a -> State Store a
 step (Return a) = return a
