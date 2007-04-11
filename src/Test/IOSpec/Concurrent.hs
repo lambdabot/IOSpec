@@ -54,7 +54,7 @@ instance Monad IOConc where
   Fork p1 p2 >>= g       = Fork p1 (\tid -> p2 tid >>= g)
 
 -- | An 'MVar' is a shared, mutable variable.
-newtype MVar a = MVar Loc
+newtype MVar a = MVar Loc deriving Typeable
 
 -- | The 'newEmptyMVar' function creates a new 'MVar' that is initially empty.
 newEmptyMVar        :: IOConc (MVar a)
@@ -93,14 +93,14 @@ data Store   = Store    {  fresh :: Loc
                         ,  nextTid :: ThreadId
                         ,  soup :: ThreadId -> ThreadStatus
                         ,  scheduler :: Scheduler
-                        ,  deadThreads :: [ThreadId]
+                        ,  blockedThreads :: [ThreadId]
                         }
 
 initStore :: Scheduler -> Store
 initStore s   = Store  {   fresh    = 0 
                         ,  nextTid   = ThreadId 1
                         ,  scheduler = s
-                        ,  deadThreads = []
+                        ,  blockedThreads = []
                         }
 
 -- | The 'runIOConc' function runs a concurrent computation with a given scheduler.
@@ -159,7 +159,7 @@ interleave main
             do  x <- step p
                 case x of
                   Stop r   ->  return (Just r)
-                  Step p   ->  do resetDeadThreads
+                  Step p   ->  do resetBlockedThreads
                                   interleave p
                   Blocked  ->  do isDeadlock <- detectDeadlock
                                   if isDeadlock 
@@ -168,10 +168,10 @@ interleave main
           Aux p -> 
             do  x <- step p
                 case x of
-                  Stop _   ->   do  resetDeadThreads
+                  Stop _   ->   do  resetBlockedThreads
                                     finishThread tid
                                     interleave main
-                  Step q   ->   do  resetDeadThreads
+                  Step q   ->   do  resetBlockedThreads
                                     extendSoup q tid
                                     interleave main
                   Blocked  ->   do  recordBlockedThread tid
@@ -232,16 +232,27 @@ extendHeap l d  = modifyHeap (update l (Just d))
 finishThread :: ThreadId -> State Store ()
 finishThread tid = modifySoup (update tid Finished)
 
-resetDeadThreads :: State Store ()
-resetDeadThreads = modifyDeadThreads (const [])
+resetBlockedThreads :: State Store ()
+resetBlockedThreads = modifyBlockedThreads (const [])
 
 recordBlockedThread :: ThreadId -> State Store ()
-recordBlockedThread tid = modifyDeadThreads (tid :)
+recordBlockedThread tid = do 
+  tids <- gets blockedThreads
+  if tid `elem` tids 
+    then return ()
+    else modifyBlockedThreads (tid :)
 
 detectDeadlock :: State Store Bool
-detectDeadlock = do deadTids <- gets deadThreads
+detectDeadlock = do blockedThreads <- liftM length (gets blockedThreads)                   
                     (ThreadId nrThreads) <- gets nextTid
-                    return (length (nub deadTids) == nrThreads - 1)
+                    threadSoup <- gets soup
+                    let allThreadIds = [ThreadId x | x <- [1 .. (nrThreads - 1)]]
+                    let finishedThreads = length $ filter isFinished (map threadSoup allThreadIds)
+                    return (blockedThreads + finishedThreads == nrThreads - 1)
+
+isFinished :: ThreadStatus -> Bool
+isFinished Finished = True
+isFinished _        = False
                        
 
 update :: Eq a => a -> b -> (a -> b) -> (a -> b)
@@ -267,5 +278,5 @@ modifyTid f             = do s <- get
 modifySoup f            = do s <- get
                              put (s {soup = f (soup s)})
 
-modifyDeadThreads f     = do s <- get
-                             put (s {deadThreads = f (deadThreads s)})
+modifyBlockedThreads f     = do s <- get
+                                put (s {blockedThreads = f (blockedThreads s)})
