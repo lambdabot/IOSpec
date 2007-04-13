@@ -97,8 +97,7 @@
                 readIORef ref
                  
   writeIORefProp :: Int -&gt; Bool
-  writeIORefProp x = runIOState (writer x) == x 
-</pre>
+  writeIORefProp x = runIOState (writer x) == x</pre>
 
   <p>Sure enough, we can QuickCheck the above property and learn
   what we knew all along: reading a freshly initialised IORef
@@ -106,17 +105,16 @@
 
   <h2>Download</h2>
 
-  <p>Feel free to download <a href="dist/IOSpec-0.1.tar.gz">a
-  tarball containing the sources</a>.</p>
+  <p>A <a href="dist/IOSpec-0.1.tar.gz">a tarball containing the
+  sources</a> is available.</p>
 
   <p>Alternatively, you may want to check out the following darcs
   repository:</p>
   <pre>
-darcs get http://www.cs.nott.ac.uk/~wss/repos/IOSpec
-</pre>
+  darcs get http://www.cs.nott.ac.uk/~wss/repos/IOSpec</pre>
 
   <h2>Installation</h2>The library is fully cabalised. To install
-  it just issue the following commands:
+  it, just issue the following commands:
   <pre>
   runhaskell Setup.lhs configure
   runhaskell Setup.lhs build
@@ -129,13 +127,12 @@ want to read more about <a href=
   <h2>Documentation</h2>
 
   <p>The examples directory that comes with the sources contains
-  several examples. I hope to write a basic manual shortly.</p>
+  several well-documented examples.</p>
 
-  <p>For the moment, I'd recommend you the
-  <a href="dist/doc/html/index.html">Haddock-generated API</a>.</p>
+  <p>For the moment, I'd recommend you have a look at <a
+  href="dist/doc/html/index.html">Haddock-generated API</a>.</p>
 
-  <p>If you're interested in the implementation, have a look at the
-  following paper:</p>
+  <p>The implementation is described in the following paper:</p>
 
   <ul>
     <li><a href=

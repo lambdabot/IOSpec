@@ -1,13 +1,23 @@
-import Control.Monad.State 
+{-# OPTIONS_GHC -fglasgow-exts #-}
 import Test.QuickCheck
 import Test.IOSpec.IORef
 import Data.Dynamic
+import Control.Monad
 
--- An implementation of queues using IORefs
+-- We begin by giving an implementation of queues using our pure
+-- specification of IORefs.
+
+type Queue = (IORef Data, IORef Data)
 
 data Data  = Cell Int (IORef Data) | NULL deriving Typeable
 
-type Queue = (IORef Data, IORef Data)
+-- There is one important point here. To use the IORefs in IOSpec,
+-- we need to make sure that any data we store in an IORef is an
+-- instance of Typeable. Fortunately, GHC can derive instances of
+-- Typeable for most data types.
+
+-- The implementation of Queues is fairly standard. We use a linked
+-- list, with special pointers to the head and tail of the queue.
 
 emptyQueue :: IOState Queue
 emptyQueue  = do  
@@ -35,7 +45,7 @@ dequeue (front,back) = do
       writeIORef front next
       return (Just x)
 
--- Besides basic queue operations, we also implement queue reversal
+-- Besides basic queue operations, we also implement queue reversal.
 
 reverseQueue :: Queue -> IOState ()
 reverseQueue (front,back) = do
@@ -73,7 +83,7 @@ unfoldM f a = do
     Nothing -> return []
     Just x -> liftM (x:) (unfoldM f a)
 
--- A few QuickCheck properties.
+-- Now we can state a few properties of queues.
 
 inversesProp :: [Int] -> Bool
 inversesProp xs = xs == runIOState (listToQueue xs >>= queueToList)
@@ -105,14 +115,15 @@ queueProp2 x y = runIOState queueProg2 == Just y
                   dequeue q
                   dequeue q
 
-main = do putStrLn "Testing first queue property."
+main = do putStrLn "Testing first queue property..."
           quickCheck queueProp1
-          putStrLn "Testing second queue property."
+          putStrLn "Testing second queue property..."
           quickCheck queueProp2
-          putStrLn "Testing queueToList and listToQueue"
+          putStrLn "Testing queueToList and listToQueue.."
           quickCheck inversesProp
-          putStrLn "Testing that reverseQueue is its own inverse."
+          putStrLn "Testing that reverseQueue is its own inverse..."
           quickCheck revRevProp
-          putStrLn "Testing reverseQueue matches the spec."
+          putStrLn "Testing reverseQueue matches the spec..."
           quickCheck revProp
-
+-- Once we are satisfied with our implementation, we can import the
+-- "real" Data.IORef instead of Test.IOSpec.IORef.

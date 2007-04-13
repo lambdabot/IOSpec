@@ -10,18 +10,22 @@ Build instructions:
     $ runhaskell Setup.lhs build
     $ runhaskell Setup.lhs install
 
-See http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html for more instructions.
+See http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html
+for more instructions.
 
 Documentation:
 
-Please have a look at the documentation available from:
+Please have a look at the latest documentation available from:
   http://www.cs.nott.ac.uk/~wss/repos/IOSpec
 
-Examples:
+To build the Haddock API execute the following command:
+    $ runhaskell Setup.lhs haddock
 
 Check out the examples directory for the following examples:
 
-  * Echo.hs - how to show that echo really does what we know it does.
-  * IORefProps.hs - a few properties of IORefs in Haskell.
-  * Queues.hs - an implementation of queues using IORefs.
-  * Channels.hs - an implementation of channels using MVars.
+    * Echo.hs - illustrates how to test the echo function.
+    * Queues.hs - an implementation of queues using IORefs.
+    * Channels.hs - an implementation of channels using MVars.
+
+Every example contains quite some comments, explaining how to use
+the library.

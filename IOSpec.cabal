@@ -17,15 +17,14 @@ Description:		At the moment this package consists of four
 			.
 			   * "Data.Stream": a library for manipulating infinite lists.
 			.
-			There are several examples included with the source distribution.
+			There are several well-documented examples included with the source distribution.
 Category:       	Test
 Build-Depends:  	base, mtl, QuickCheck 
 Hs-source-dirs:		src
 Extra-source-files:	README
-			, examples/Echo.hs
-			, examples/IORefProps.hs
-			, examples/Queues.hs
-			, examples/Channels.hs 
+			, manual/Echo.lhs
+			, manual/Queues.lhs
+			, manual/Channels.lhs
 Exposed-modules:	Data.Stream
 			, Test.IOSpec
 			, Test.IOSpec.Teletype
