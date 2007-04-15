@@ -1,5 +1,3 @@
-module Echo where
-
 -- Note that the Prelude and Test.IOSpec.Teletype both export
 -- functions called getChar and putChar. To begin with, we hide the
 -- definitions in the prelude and work with the pure specification.
