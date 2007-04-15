@@ -92,16 +92,22 @@
   <pre>
   import Test.IOSpec.IORef
 
-  writer :: Int -&gt; IOState Int
-  writer x = do ref &lt;- newIORef x
-                readIORef ref
+  readOnce :: Int -&gt; IOState Int
+  readOnce x = do ref &lt;- newIORef x
+                  readIORef ref
+
+  readTwice :: Int -&gt; IOState Int
+  readTwice x = do ref &lt;- newIORef x
+                   readIORef ref
+                   readIORef ref
                  
-  writeIORefProp :: Int -&gt; Bool
-  writeIORefProp x = runIOState (writer x) == x</pre>
+  readIORefProp :: Int -&gt; Bool
+  readIORefProp x = runIOState (readOnce x) == runIOState (readTwice x)
+</pre>
 
   <p>Sure enough, we can QuickCheck the above property and learn
-  what we knew all along: reading a freshly initialised IORef
-  returns the value it was initialised with.</p>
+  what we knew all along: reading an IORef does not modify its
+  contents.</p>
 
   <h2>Download</h2>
 
@@ -111,7 +117,8 @@
   <p>Alternatively, you may want to check out the following darcs
   repository:</p>
   <pre>
-  darcs get http://www.cs.nott.ac.uk/~wss/repos/IOSpec</pre>
+  darcs get http://www.cs.nott.ac.uk/~wss/repos/IOSpec
+</pre>
 
   <h2>Installation</h2>The library is fully cabalised. To install
   it, just issue the following commands:
@@ -126,11 +133,11 @@ want to read more about <a href=
 
   <h2>Documentation</h2>
 
-  <p>The examples directory that comes with the sources contains
-  several well-documented examples.</p>
+  <p>The <a href="examples">examples directory</a> that comes with
+  the sources contains several well-documented examples.</p>
 
-  <p>For the moment, I'd recommend you have a look at <a
-  href="dist/doc/html/index.html">Haddock-generated API</a>.</p>
+  <p>For the moment, I'd recommend you have a look at <a href=
+  "dist/doc/html/index.html">Haddock-generated API</a>.</p>
 
   <p>The implementation is described in the following paper:</p>
 
