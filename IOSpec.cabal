@@ -22,9 +22,9 @@ Category:       	Test
 Build-Depends:  	base, mtl, QuickCheck 
 Hs-source-dirs:		src
 Extra-source-files:	README
-			, manual/Echo.lhs
-			, manual/Queues.lhs
-			, manual/Channels.lhs
+			, examples/Echo.hs
+			, examples/Queues.hs
+			, examples/Channels.hs
 Exposed-modules:	Data.Stream
 			, Test.IOSpec
 			, Test.IOSpec.Teletype

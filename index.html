@@ -87,6 +87,8 @@
   functions in the IO monad. You can use these specifications to
   test, debug, or reason about impure code.</p>
 
+  <h2>Introduction</h2>
+
   <p>To get a taste of what you can do, consider the following (not
   terribly exciting) code snippet:</p>
   <pre>
@@ -105,10 +107,28 @@
   readIORefProp x = runIOState (readOnce x) == runIOState (readTwice x)
 </pre>
 
-  <p>Sure enough, we can QuickCheck the above property and learn
+  <p>Sure enough, we can test the above property and learn
   what we knew all along: reading an IORef does not modify its
   contents. This might seem trivial, but this property does not hold
   for MVars, for instance.</p>
+
+  <p>A more interesting examples is an 'imperative' implementation
+  of queues, using IORefs to create linked lists. Suppose we
+  implement the following operations:</p>
+
+  <pre>
+  emptyQueue :: IOState Queue
+  enqueue :: Queue -> Int -> IOState ()
+  dequeue :: Queue -> IOState (Maybe Int)</pre>
+
+  <p>We can use QuickCheck to verify properties of our implementation
+  <i>as if it was pure</i>. Once we are satisfied with our
+  implementation, we can import Data.IORef and use real IORefs,
+  instead of the pure specification provided by IOSpec.</p>
+
+  <p>Of course, you can accomplish all of this using the ST monad. The
+  IOSpec library is, however, not restricted to IORefs. There are
+  also pure specifications of concurrency and teletype primitives. </p>
 
   <h2>Download</h2>
 
@@ -154,12 +174,10 @@ want to read more about <a href=
   touch!</p>Wouter Swierstra<br>
   <img src="www/email.jpg" alt="Email address">
 
-   <script src="http://www.google-analytics.com/urchin.js"
-      type="text/javascript">
-    </script>
-    <script type="text/javascript">
-    _uacct = "UA-1372453-2";
-    urchinTracker();
-    </script>
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript"><</script>
+<script type="text/javascript">
+_uacct = "UA-1372453-2";
+urchinTracker();
+</script>
     </body>
 </html>
