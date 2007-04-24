@@ -1,5 +1,5 @@
 Name:		        IOSpec
-Version:        	0.1
+Version:        	0.1.1
 License:        	BSD3
 License-file:		LICENSE
 Author:			Wouter Swierstra
@@ -18,7 +18,7 @@ Description:		At the moment this package consists of four
 			   * "Data.Stream": a library for manipulating infinite lists.
 			.
 			There are several well-documented examples included with the source distribution.
-Category:       	Test
+Category:       	Testing
 Build-Depends:  	base, mtl, QuickCheck 
 Hs-source-dirs:		src
 Extra-source-files:	README
