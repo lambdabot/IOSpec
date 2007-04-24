@@ -9,11 +9,11 @@ Synopsis:       	A pure specification of the IO monad.
 Description:		At the moment this package consists of four 
 			modules:
 			.
-                           * "Test.IOSpec.Teletype": a specification of 'getChar' and 'putChar'.
+                           * "Test.IOSpec.Teletype": a specification of getChar and putChar.
 			.
-			   * "Test.IOSpec.IORef": a specification of most functions on 'IORefs'.
+			   * "Test.IOSpec.IORef": a specification of most functions on IORefs.
 			.
-			   * "Test.IOSpec.Concurrent": specification of 'forkIO' and 'MVars'.
+			   * "Test.IOSpec.Concurrent": specification of forkIO and MVars.
 			.
 			   * "Data.Stream": a library for manipulating infinite lists.
 			.
