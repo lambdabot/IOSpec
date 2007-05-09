@@ -8,12 +8,17 @@
 <style type="text/css" title="currentStyle">
 
   /* text margins and font */
-  body
+  body, td
   {
-    font:14px verdana, sans-serif;
-    color: #2c2c2c;    
+    font:12px verdana, sans-serif;
+    color: #191919;
     margin: 2ex 7.5% 2ex 7.5%;
     padding-bottom: 2ex;
+  }
+
+  .ralign
+  {
+  margin: 0ex 0em 0ex 2em;
   }
 
   /* Header with border */
@@ -29,13 +34,13 @@
   /* Headers colour */
   h1,h2,h3,h4 
   {
-    color:#4070C0
+    color:#000080
   }
 
   /* link colouring */
   a:link 
   {
-    color: #0078FF;
+    color: #0000FF;
     text-decoration: none;
   }
 
@@ -82,7 +87,9 @@
 
 <body>
   <h1>IOSpec: a pure specification of the IO monad</h1>
-
+  <table>
+  <tr>
+  <td>
   <p>IOSpec is a library containing a pure specification of several
   functions in the IO monad. You can use these specifications to
   test, debug, or reason about impure code.</p>
@@ -91,6 +98,7 @@
 
   <p>To get a taste of what you can do, consider the following (not
   terribly exciting) code snippet:</p>
+
   <pre>
   import Test.IOSpec.IORef
 
@@ -104,8 +112,13 @@
                    readIORef ref
                  
   readIORefProp :: Int -&gt; Bool
-  readIORefProp x = runIOState (readOnce x) == runIOState (readTwice x)
-</pre>
+  readIORefProp x = runIOState (readOnce x) == runIOState (readTwice x)</pre>
+  </td>
+  <td>
+  <img class = "ralign" src="www/unsafe.jpg" alt="unsafePerformIO">
+  </td>
+  </tr>
+  </table>
 
   <p>Sure enough, we can test the above property and learn what we
   knew all along: reading an IORef does not modify its contents.
@@ -115,6 +128,7 @@
   <p>A more interesting examples is an 'imperative' implementation
   of queues, using IORefs to create linked lists. Suppose we
   implement the following operations:</p>
+
   <pre>
   emptyQueue :: IOState Queue
   enqueue :: Queue -&gt; Int -&gt; IOState ()
@@ -174,8 +188,8 @@ want to read more about <a href=
   "35" src="www/cabal.png" alt="Cabal">
 
   <p>If you have any comments or suggestions, please get in
-  touch!</p>Wouter Swierstra<br>
-  <img src="www/email.jpg" alt="Email address"> <script src=
+  touch!</p><a href = "http://www.cs.nott.ac.uk/~wss">Wouter Swierstra</a><br>
+  <script src=
   "http://www.google-analytics.com/urchin.js" type=
   "text/javascript">
 </script><script type="text/javascript">
