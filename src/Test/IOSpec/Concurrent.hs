@@ -1,282 +1,218 @@
-{-#  OPTIONS -fglasgow-exts -fno-warn-missing-fields  #-}
 -- | A pure specification of basic concurrency operations.
 
 module Test.IOSpec.Concurrent
    (
    -- * The IOConc monad
-     IOConc
-   , runIOConc
+     IOMVar
    -- * Supported functions
-   , ThreadId
    , MVar
    , newEmptyMVar
    , takeMVar
    , putMVar
-   , forkIO
-   -- * Schedulers
-   , Scheduler(..)
-   , streamSched
-   , roundRobin
    )
    where 
 
 import Data.Dynamic
 import Data.Maybe (fromJust)
-import Data.List (nub)
 import Control.Monad.State
+import Test.IOSpec.Types
+import Test.IOSpec.VirtualMachine 
 import qualified Data.Stream as Stream
 
 -- The IOConc data type and its instances
-newtype ThreadId  = ThreadId Int deriving (Eq, Show)
-type Data         = Dynamic
-type Loc          = Int
 
-data IOConc a = 
-     NewEmptyMVar (Loc -> IOConc a) 
-  |  TakeMVar Loc (Data -> IOConc a) 
-  |  PutMVar Loc Data (IOConc a)
-  |  forall b . Fork  (IOConc b) (ThreadId -> IOConc  a)
-  |  Return a 
+data IOMVar a = 
+     NewEmptyMVar (Loc -> a) 
+  |  TakeMVar Loc (Data -> a) 
+  |  PutMVar Loc Data a
 
-instance Functor IOConc where 
-  fmap f (Return x) = Return (f x)
-  fmap f (NewEmptyMVar io) = NewEmptyMVar (\l -> fmap f (io l))
-  fmap f (TakeMVar l io) = TakeMVar l (\d -> fmap f (io d))
-  fmap f (PutMVar l d io) = PutMVar l d (fmap f io)
-  fmap f (Fork l io)      = Fork l (\tid -> fmap f (io tid))
-
-instance Monad IOConc where
-  return = Return
-  (Return x) >>= g       = g x
-  (NewEmptyMVar f) >>= g = NewEmptyMVar (\l -> f l >>= g)
-  (TakeMVar l f) >>= g   = TakeMVar l (\d -> f d >>= g)
-  PutMVar c d f >>= g    = PutMVar c d (f >>= g)
-  Fork p1 p2 >>= g       = Fork p1 (\tid -> p2 tid >>= g)
+instance Functor IOMVar where 
+  fmap f (NewEmptyMVar io) = NewEmptyMVar (f . io)
+  fmap f (TakeMVar l io) = TakeMVar l (f . io)
+  fmap f (PutMVar l d io) = PutMVar l d (f io)
 
 -- | An 'MVar' is a shared, mutable variable.
 newtype MVar a = MVar Loc deriving Typeable
 
 -- | The 'newEmptyMVar' function creates a new 'MVar' that is initially empty.
-newEmptyMVar        :: IOConc (MVar a)
-newEmptyMVar        = NewEmptyMVar (Return . MVar)
+newEmptyMVar        :: (Typeable a, IOMVar :<: f) => IOSpec f (MVar a)
+newEmptyMVar        = inject $ NewEmptyMVar (return . MVar)
  
 -- | The 'takeMVar' function removes the value stored in an
 -- 'MVar'. If the 'MVar' is empty, the thread is blocked.
-takeMVar            :: Typeable a => MVar a -> IOConc a
-takeMVar (MVar l)   = TakeMVar l (Return . unsafeFromDynamic)
+takeMVar            :: (Typeable a, IOMVar :<: f) => MVar a -> IOSpec f a
+takeMVar (MVar l)   = inject $ TakeMVar l (return . fromJust . fromDynamic)
 
 -- | The 'putMVar' function fills an 'MVar' with a new value. If the
 -- 'MVar' is not empty, the thread is blocked.
-putMVar             :: Typeable a => MVar a -> a -> IOConc ()
-putMVar (MVar l) d  = PutMVar l (toDyn d) (Return ())
+putMVar             :: (Typeable a, IOMVar :<: f) => MVar a -> a -> IOSpec f ()
+putMVar (MVar l) d  = inject $ PutMVar l (toDyn d) (return ())
 
--- | The 'forkIO' function forks off a new thread.
-forkIO              :: IOConc a -> IOConc ThreadId 
-forkIO p            = Fork p Return
+instance Executable IOMVar where
+  step (NewEmptyMVar t) = do loc <- alloc
+                             emptyMVar loc
+                             return (Step (t loc))
+  step (TakeMVar loc t) = do var <- lookupHeap loc
+                             case var of
+                               Nothing -> return Block
+                               Just x -> do
+                                 emptyMVar loc
+                                 return (Step (t x))                                  
+  step (PutMVar loc d t) = do var <- lookupHeap loc
+                              case var of
+                                Nothing -> do
+                                  updateHeap loc (Just d)
+                                  return (Step t)
+                                Just x -> return Block
 
--- The scheduler and store
+emptyMVar :: Loc -> VM ()
+emptyMVar loc = updateHeap loc Nothing
 
--- | A scheduler consists of a function that, given the number of
--- threads, returns the 'ThreadId' of the next scheduled thread,
--- together with a new scheduler.
-newtype Scheduler = 
-  Scheduler (Int -> (ThreadId, Scheduler))
 
-data ThreadStatus = 
-     forall b . Running (IOConc b) 
-  |  Finished
+-- runIOMVar :: IOMVar a -> Scheduler -> Maybe a
+-- runIOMVar io s = evalState (interleave io) (initStore s)
 
-type Heap = Loc -> Maybe Data
+-- -- A single step
 
-data Store   = Store    {  fresh :: Loc
-                        ,  heap :: Heap
-                        ,  nextTid :: ThreadId
-                        ,  soup :: ThreadId -> ThreadStatus
-                        ,  scheduler :: Scheduler
-                        ,  blockedThreads :: [ThreadId]
-                        }
+-- data Status a = Stop a | Step (IOMVar a) | Blocked 
 
-initStore :: Scheduler -> Store
-initStore s   = Store  {   fresh    = 0 
-                        ,  nextTid   = ThreadId 1
-                        ,  scheduler = s
-                        ,  blockedThreads = []
-                        }
+-- step ::  IOMVar a -> State Store (Status a)
+-- step (Return a) = return (Stop a)
+-- step (NewEmptyMVar f)
+--   = do  loc <- alloc
+--         modifyHeap (update loc Nothing)
+--         return (Step (f loc))
+-- step (TakeMVar l f)  
+--   = do  var <- lookupHeap l
+--         case var of
+--           Nothing   ->  return Blocked
+--           (Just d)  ->  do  emptyMVar l
+--                             return (Step (f d))
+-- step (PutMVar l d p)   
+--   = do  var <- lookupHeap l
+--         case var of
+--           Nothing   ->  do  fillMVar l d
+--                             return (Step p)
+--           (Just d)  ->  return Blocked
+-- step (Fork l r)        
+--   = do  tid <- freshThreadId
+--         extendSoup l tid
+--         return (Step (r tid))
 
--- | The 'runIOConc' function runs a concurrent computation with a given scheduler.
--- If a deadlock occurs, Nothing is returned.
+-- emptyMVar :: Loc -> State Store ()
+-- emptyMVar l = modifyHeap (update l Nothing)
 
-runIOConc :: IOConc a -> Scheduler -> Maybe a
-runIOConc io s = evalState (interleave io) (initStore s)
+-- fillMVar :: Loc -> Data -> State Store ()
+-- fillMVar l d = modifyHeap (update l (Just d))
 
--- A single step
+-- extendSoup :: IOMVar a -> ThreadId -> State Store () 
 
-data Status a = Stop a | Step (IOConc a) | Blocked 
 
-step ::  IOConc a -> State Store (Status a)
-step (Return a) = return (Stop a)
-step (NewEmptyMVar f)
-  = do  loc <- alloc
-        modifyHeap (update loc Nothing)
-        return (Step (f loc))
-step (TakeMVar l f)  
-  = do  var <- lookupHeap l
-        case var of
-          Nothing   ->  return Blocked
-          (Just d)  ->  do  emptyMVar l
-                            return (Step (f d))
-step (PutMVar l d p)   
-  = do  var <- lookupHeap l
-        case var of
-          Nothing   ->  do  fillMVar l d
-                            return (Step p)
-          (Just d)  ->  return Blocked
-step (Fork l r)        
-  = do  tid <- freshThreadId
-        extendSoup l tid
-        return (Step (r tid))
+-- -- Interleaving steps
 
-emptyMVar :: Loc -> State Store ()
-emptyMVar l = modifyHeap (update l Nothing)
+-- data Process a = 
+--      Main (IOMVar a)
+--   |  forall b . Aux (IOMVar b)
 
-fillMVar :: Loc -> Data -> State Store ()
-fillMVar l d = modifyHeap (update l (Just d))
+-- interleave :: IOMVar a -> State Store (Maybe a)
+-- interleave main  
+--   = do  (tid,t) <- schedule main
+--         case t of
+--           Main p -> 
+--             do  x <- step p
+--                 case x of
+--                   Stop r   ->  return (Just r)
+--                   Step p   ->  do resetBlockedThreads
+--                                   interleave p
+--                   Blocked  ->  do isDeadlock <- detectDeadlock
+--                                   if isDeadlock 
+--                                     then return Nothing
+--                                     else interleave main
+--           Aux p -> 
+--             do  x <- step p
+--                 case x of
+--                   Stop _   ->   do  resetBlockedThreads
+--                                     finishThread tid
+--                                     interleave main
+--                   Step q   ->   do  resetBlockedThreads
+--                                     extendSoup q tid
+--                                     interleave main
+--                   Blocked  ->   do  recordBlockedThread tid
+--                                     interleave main
 
-extendSoup :: IOConc a -> ThreadId -> State Store () 
-extendSoup p tid = modifySoup (update tid (Running p))
-
--- Interleaving steps
-
-data Process a = 
-     Main (IOConc a)
-  |  forall b . Aux (IOConc b)
-
-interleave :: IOConc a -> State Store (Maybe a)
-interleave main  
-  = do  (tid,t) <- schedule main
-        case t of
-          Main p -> 
-            do  x <- step p
-                case x of
-                  Stop r   ->  return (Just r)
-                  Step p   ->  do resetBlockedThreads
-                                  interleave p
-                  Blocked  ->  do isDeadlock <- detectDeadlock
-                                  if isDeadlock 
-                                    then return Nothing
-                                    else interleave main
-          Aux p -> 
-            do  x <- step p
-                case x of
-                  Stop _   ->   do  resetBlockedThreads
-                                    finishThread tid
-                                    interleave main
-                  Step q   ->   do  resetBlockedThreads
-                                    extendSoup q tid
-                                    interleave main
-                  Blocked  ->   do  recordBlockedThread tid
-                                    interleave main
-
-schedule :: IOConc a -> State Store (ThreadId, Process a)
-schedule main = do  (ThreadId tid) <- getNextThreadId
-                    if tid == 0 
-                      then return (ThreadId 0, Main main)
-                      else do
-                        tsoup <- gets soup
-                        case tsoup (ThreadId tid) of
-                          Finished ->  schedule main
-                          Running p -> return (ThreadId tid, Aux p)
+-- schedule :: IOMVar a -> State Store (ThreadId, Process a)
+-- schedule main = do  (ThreadId tid) <- getNextThreadId
+--                     if tid == 0 
+--                       then return (ThreadId 0, Main main)
+--                       else do
+--                         tsoup <- gets soup
+--                         case tsoup (ThreadId tid) of
+--                           Finished ->  schedule main
+--                           Running p -> return (ThreadId tid, Aux p)
                           
 
-getNextThreadId :: State Store ThreadId
-getNextThreadId = do  Scheduler sch <- gets scheduler
-                      (ThreadId n) <- gets nextTid
-                      let (tid,s) = sch n
-                      modifyScheduler (const s)
-                      return tid
+-- getNextThreadId :: State Store ThreadId
+-- getNextThreadId = do  Scheduler sch <- gets scheduler
+--                       (ThreadId n) <- gets nextTid
+--                       let (tid,s) = sch n
+--                       modifyScheduler (const s)
+--                       return tid
 
 
--- | Given a stream of integers, 'streamSched' builds a
--- scheduler. This is especially useful if you use QuickCheck and
--- generate a random stream; the resulting random scheduler will
--- hopefully cover a large number of interleavings.
+-- -- | Given a stream of integers, 'streamSched' builds a
+-- -- scheduler. This is especially useful if you use QuickCheck and
+-- -- generate a random stream; the resulting random scheduler will
+-- -- hopefully cover a large number of interleavings.
 
-streamSched :: Stream.Stream Int -> Scheduler
-streamSched xs = 
-  Scheduler (\k -> (ThreadId (Stream.head xs `mod` k), streamSched (Stream.tail xs)))
+-- streamSched :: Stream.Stream Int -> Scheduler
+-- streamSched xs = 
+--   Scheduler (\k -> (ThreadId (Stream.head xs `mod` k), streamSched (Stream.tail xs)))
 
 
--- | A simple round-robin scheduler.
-roundRobin :: Scheduler
-roundRobin = streamSched (Stream.unfold (\k -> (k, k+1)) 0)
+-- -- | A simple round-robin scheduler.
+-- roundRobin :: Scheduler
+-- roundRobin = streamSched (Stream.unfold (\k -> (k, k+1)) 0)
 
--- Utilities
+-- -- Utilities
 
-freshThreadId :: State Store ThreadId
-freshThreadId = do tid <- gets nextTid
-                   modifyTid (\(ThreadId k) -> ThreadId (k + 1))
-                   return tid
+-- freshThreadId :: State Store ThreadId
+-- freshThreadId = do tid <- gets nextTid
+--                    modifyTid (\(ThreadId k) -> ThreadId (k + 1))
+--                    return tid
 
-alloc :: State Store Loc 
-alloc = do  loc <- gets fresh
-            modifyFresh ((+) 1)
-            return loc
+-- alloc :: State Store Loc 
+-- alloc = do  loc <- gets fresh
+--             modifyFresh ((+) 1)
+--             return loc
 
-lookupHeap :: Loc -> State Store (Maybe Data)
-lookupHeap l = do  h <- gets heap
-                   return (h l)
+-- lookupHeap :: Loc -> State Store (Maybe Data)
+-- lookupHeap l = do  h <- gets heap
+--                    return (h l)
 
-extendHeap :: Loc -> Data -> State Store ()
-extendHeap l d  = modifyHeap (update l (Just d))
+-- extendHeap :: Loc -> Data -> State Store ()
+-- extendHeap l d  = modifyHeap (update l (Just d))
 
-finishThread :: ThreadId -> State Store ()
-finishThread tid = modifySoup (update tid Finished)
+-- finishThread :: ThreadId -> State Store ()
+-- finishThread tid = modifySoup (update tid Finished)
 
-resetBlockedThreads :: State Store ()
-resetBlockedThreads = modifyBlockedThreads (const [])
+-- resetBlockedThreads :: State Store ()
+-- resetBlockedThreads = modifyBlockedThreads (const [])
 
-recordBlockedThread :: ThreadId -> State Store ()
-recordBlockedThread tid = do 
-  tids <- gets blockedThreads
-  if tid `elem` tids 
-    then return ()
-    else modifyBlockedThreads (tid :)
+-- recordBlockedThread :: ThreadId -> State Store ()
+-- recordBlockedThread tid = do 
+--   tids <- gets blockedThreads
+--   if tid `elem` tids 
+--     then return ()
+--     else modifyBlockedThreads (tid :)
 
-detectDeadlock :: State Store Bool
-detectDeadlock = do blockedThreads <- liftM length (gets blockedThreads)                   
-                    (ThreadId nrThreads) <- gets nextTid
-                    threadSoup <- gets soup
-                    let allThreadIds = [ThreadId x | x <- [1 .. (nrThreads - 1)]]
-                    let finishedThreads = length $ filter isFinished (map threadSoup allThreadIds)
-                    return (blockedThreads + finishedThreads == nrThreads - 1)
+-- detectDeadlock :: State Store Bool
+-- detectDeadlock = do blockedThreads <- liftM length (gets blockedThreads)                   
+--                     (ThreadId nrThreads) <- gets nextTid
+--                     threadSoup <- gets soup
+--                     let allThreadIds = [ThreadId x | x <- [1 .. (nrThreads - 1)]]
+--                     let finishedThreads = length $ filter isFinished (map threadSoup allThreadIds)
+--                     return (blockedThreads + finishedThreads == nrThreads - 1)
 
-isFinished :: ThreadStatus -> Bool
-isFinished Finished = True
-isFinished _        = False
-                       
-
-update :: Eq a => a -> b -> (a -> b) -> (a -> b)
-update l d h k
-  | l == k       = d
-  | otherwise    = h k
-
-unsafeFromDynamic :: Typeable a => Dynamic -> a
-unsafeFromDynamic = fromJust . fromDynamic
-
-modifyHeap f            = do s <- get
-                             put (s {heap = f (heap s)})
-
-modifyScheduler f       = do s <- get
-                             put (s {scheduler = f (scheduler s)})
-
-modifyFresh f           = do s <- get
-                             put (s {fresh = f (fresh s)})
-
-modifyTid f             = do s <- get
-                             put (s {nextTid = f (nextTid s)})
- 
-modifySoup f            = do s <- get
-                             put (s {soup = f (soup s)})
-
-modifyBlockedThreads f     = do s <- get
-                                put (s {blockedThreads = f (blockedThreads s)})
+-- isFinished :: ThreadStatus -> Bool
+-- isFinished Finished = True
+-- isFinished _        = False

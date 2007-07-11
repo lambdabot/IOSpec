@@ -3,7 +3,7 @@ import Test.QuickCheck
 import Control.Monad
 import Data.Maybe (fromJust, isJust)
 import Data.List (sort)
-import Test.IOSpec.Concurrent
+import Test.IOSpec hiding (Data)
 import Data.Dynamic
 
 -- An implementation of channels using MVars. Simon Peyton Jones's
@@ -13,6 +13,8 @@ import Data.Dynamic
 data Data =  Cell Int (MVar Data) deriving Typeable
 
 type Channel = (MVar (MVar Data), MVar (MVar Data))
+
+type IOConc a = IOSpec (IOMVar :+: Fork) a
 
 newChan :: IOConc Channel
 newChan = do read <- newEmptyMVar
@@ -76,9 +78,9 @@ wait var xs  = do
 -- Using QuickCheck to generate a random stream, we can use the
 -- streamSched to implement a random scheduler -- thereby testing as
 -- many interleavings as possible.
-chanProp ints stream =
-  sort (fromJust (runIOConc (chanTest ints) (streamSched stream))) 
-  ==  sort ints
+chanProp ints sched =
+  fmap sort (runIOSpec (chanTest ints) sched)
+  ==  Done (sort ints)
 
 main = do putStrLn "Testing channels..."
           quickCheck chanProp

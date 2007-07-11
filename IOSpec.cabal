@@ -1,5 +1,5 @@
 Name:		        IOSpec
-Version:        	0.1.1
+Version:        	0.2
 License:        	BSD3
 License-file:		LICENSE
 Author:			Wouter Swierstra
@@ -20,6 +20,7 @@ Description:		At the moment this package consists of four
 			There are several well-documented examples included with the source distribution.
 Category:       	Testing
 Build-Depends:  	base, mtl, QuickCheck 
+Extensions:		MultiParamTypeClasses
 Hs-source-dirs:		src
 Extra-source-files:	README
 			, examples/Echo.hs
@@ -30,3 +31,6 @@ Exposed-modules:	Data.Stream
 			, Test.IOSpec.Teletype
 			, Test.IOSpec.IORef
 			, Test.IOSpec.Concurrent
+			, Test.IOSpec.Types
+			, Test.IOSpec.Fork
+			, Test.IOSpec.VirtualMachine
