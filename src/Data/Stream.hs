@@ -8,6 +8,8 @@ module Data.Stream
    -- * Basic functions
    , head 
    , tail
+   , inits
+   , tails
    -- * Stream transformations
    , map
    , intersperse 
@@ -66,7 +68,6 @@ instance Monad Stream where
   return = repeat
   (Cons x xs) >>= f = Cons (head (f x)) (tail (xs >>= f))
 
-
 -- | Extract the first element of the sequence.
 head :: Stream a -> a
 head (Cons x _ ) = x
@@ -104,6 +105,7 @@ take n (Cons x xs)
   | otherwise = error "Stream.take: negative argument."
 
 -- | 'drop' @n@ @xs@ drops the first @n@ elements off the front of the sequence @xs@.
+drop :: Int -> Stream a -> Stream a
 drop n xs
   | n == 0    = xs
   | n > 0     = drop (n - 1) (tail xs)

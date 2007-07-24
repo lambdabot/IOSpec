@@ -14,7 +14,7 @@ data Data =  Cell Int (MVar Data) deriving Typeable
 
 type Channel = (MVar (MVar Data), MVar (MVar Data))
 
-type IOConc a = IOSpec (IOMVar :+: Fork) a
+type IOConc a = IOSpec (MVarSpec :+: Fork) a
 
 newChan :: IOConc Channel
 newChan = do read <- newEmptyMVar

@@ -21,6 +21,7 @@ Description:		At the moment this package consists of four
 Category:       	Testing
 Build-Depends:  	base, mtl, QuickCheck 
 Extensions:		MultiParamTypeClasses
+Ghc-options:		-Wall
 Hs-source-dirs:		src
 Extra-source-files:	README
 			, examples/Echo.hs
@@ -28,9 +29,10 @@ Extra-source-files:	README
 			, examples/Channels.hs
 Exposed-modules:	Data.Stream
 			, Test.IOSpec
-			, Test.IOSpec.Teletype
-			, Test.IOSpec.IORef
-			, Test.IOSpec.Concurrent
-			, Test.IOSpec.Types
 			, Test.IOSpec.Fork
+			, Test.IOSpec.IORef
+			, Test.IOSpec.MVar
+			, Test.IOSpec.STM
+			, Test.IOSpec.Teletype
+			, Test.IOSpec.Types
 			, Test.IOSpec.VirtualMachine

@@ -6,18 +6,14 @@ module Test.IOSpec.Teletype
    -- * Pure getChar and putChar
    , getChar
    , putChar
-   -- * Execution
-   , executeTeletype
    ) 
    where
 
-import qualified Data.Stream as Stream (Stream, head, tail)
 import Prelude hiding (getChar, putChar)
 import Test.IOSpec.Types
 import Test.IOSpec.VirtualMachine
 
-
--- | The Teletype 
+-- | The Teletype type and its instance
 data Teletype a = 
      GetChar (Char -> a)
   |  PutChar Char a
@@ -39,9 +35,3 @@ instance Executable Teletype where
                           return (Step (f c))
   step (PutChar c a) = do printChar c
                           return (Step a)
-
-executeTeletype :: IOSpec Teletype a -> Effect a
-executeTeletype tt = 
-  fmap fst (runVM (execute tt) (internalError "executeTeletype"))
-
-internalError msg = error ("IOSpec.Teletype: internal error: " ++ msg)

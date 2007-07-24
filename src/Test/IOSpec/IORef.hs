@@ -15,8 +15,6 @@ module Test.IOSpec.IORef
    ) 
    where
 
-import Control.Monad.State 
-import Control.Monad.Identity
 import Data.Dynamic
 import Data.Maybe (fromJust)
 import Test.IOSpec.Types
