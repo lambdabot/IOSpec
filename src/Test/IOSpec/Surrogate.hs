@@ -11,8 +11,9 @@ module Test.IOSpec.Surrogate
   , STMs
   , Teletype
   , (:+:)
-  ) where
-  
+  )
+  where
+
 -- | The 'IOSpec f a' is merely type synonym for 'IO a'.
 type IOSpec f a  = IO a
 

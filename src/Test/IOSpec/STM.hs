@@ -25,7 +25,7 @@ import Control.Monad.State
 -- | The 'STMs' data type and its instances.
 -- An expression of type 'IOSpec STMs a' corresponds to an 'IO'
 -- computation that uses 'atomically' and returns a value of
--- type 'a'. 
+-- type 'a'.
 --
 -- By itself, 'STMs' is not terribly useful. You will probably want
 -- to use 'IOSpec (Forks :+: STMs)'.
@@ -40,7 +40,7 @@ atomically     :: (STMs :<: f) => STM a -> IOSpec f a
 atomically stm = inject $ Atomically stm (return)
 
 instance Executable STMs where
-  step (Atomically stm b) = 
+  step (Atomically stm b) =
     do state <- get
        case runStateT (executeSTM stm) state of
          Done (Nothing,_) -> return Block
