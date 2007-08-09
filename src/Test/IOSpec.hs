@@ -1,6 +1,6 @@
 module Test.IOSpec
   (
--- * The specifications 
+-- * The specifications
     module Test.IOSpec.Fork
   , module Test.IOSpec.MVar
   , module Test.IOSpec.Ref
