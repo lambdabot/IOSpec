@@ -1,6 +1,7 @@
 module Test.IOSpec
   (
-    module Test.IOSpec.IORef
+-- * The specifications 
+    module Test.IOSpec.Fork
   , module Test.IOSpec.MVar
   , module Test.IOSpec.Ref
   , module Test.IOSpec.STM

@@ -18,7 +18,7 @@ import Test.IOSpec.VirtualMachine
 -- An expression of type 'IOSpec Teletype a' corresponds to an 'IO'
 -- computation that may print to or read from stdout and stdin
 -- respectively.
--- 
+--
 -- There is a minor caveat here. I assume that stdin and stdout are
 -- not buffered. This is not the standard behaviour in many Haskell
 -- compilers.
@@ -41,7 +41,9 @@ putChar    ::  (Teletype :<: f) => Char -> IOSpec f ()
 putChar c  =   inject (PutChar c (return ()))
 
 instance Executable Teletype where
-  step (GetChar f)   = do c <- readChar
-                          return (Step (f c))
-  step (PutChar c a) = do printChar c
-                          return (Step a)
+  step (GetChar f)   = do
+    c <- readChar
+    return (Step (f c))
+  step (PutChar c a) = do
+    printChar c
+    return (Step a)

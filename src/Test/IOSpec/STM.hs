@@ -13,7 +13,7 @@ module Test.IOSpec.STM
    , retry
    , orElse
    , check
-   ) 
+   )
    where
 
 import Test.IOSpec.VirtualMachine
@@ -22,9 +22,14 @@ import Data.Dynamic
 import Data.Maybe (fromJust)
 import Control.Monad.State
 
-newtype TVar a = TVar Loc
-
-data STMSpec a = 
+-- | The 'STMs' data type and its instances.
+-- An expression of type 'IOSpec STMs a' corresponds to an 'IO'
+-- computation that uses 'atomically' and returns a value of
+-- type 'a'. 
+--
+-- By itself, 'STMs' is not terribly useful. You will probably want
+-- to use 'IOSpec (Forks :+: STMs)'.
+data STMs a =
   forall b . Atomically (STM b) (b -> a)
 
 instance Functor STMs where
@@ -57,8 +62,11 @@ instance Monad STM where
     NewTVar d g >>= f     = NewTVar d (\l -> g l >>= f)
     ReadTVar l g >>= f    = ReadTVar l (\d -> g d >>= f)
     WriteTVar l d p >>= f = WriteTVar l d (p >>= f)
-    Retry >>= _ = Retry
-    OrElse p q >>= f = OrElse (p >>= f) (q >>= f)
+    Retry >>= _           = Retry
+    OrElse p q >>= f      = OrElse (p >>= f) (q >>= f)
+
+-- | A 'TVar' is a shared, mutable variable used by STM.
+newtype TVar a = TVar Loc
 
 -- | The 'newTVar' function creates a new transactional variable.
 newTVar   :: Typeable a => a -> STM (TVar a)
@@ -94,17 +102,17 @@ orElse p q = OrElse p q
 executeSTM :: STM a -> VM (Maybe a)
 executeSTM (STMReturn x)      = return (return x)
 executeSTM (NewTVar d io)     = do
-  loc <- alloc 
+  loc <- alloc
   updateHeap loc (Just d)
   executeSTM (io loc)
-executeSTM (ReadTVar l io) =
-  do (Just d) <- lookupHeap l
-     executeSTM (io d)
-executeSTM (WriteTVar l d io) = 
-  do updateHeap l (Just d)
-     executeSTM io           
-executeSTM Retry = return Nothing
-executeSTM (OrElse p q) = do
+executeSTM (ReadTVar l io)    = do
+  (Just d) <- lookupHeap l
+  executeSTM (io d)
+executeSTM (WriteTVar l d io) = do
+  updateHeap l (Just d)
+  executeSTM io
+executeSTM Retry              = return Nothing
+executeSTM (OrElse p q)       = do
   state <- get
   case runStateT (executeSTM p) state of
     Done (Nothing,_) -> executeSTM q
@@ -113,19 +121,3 @@ executeSTM (OrElse p q) = do
 
 internalError :: String -> a
 internalError msg = error ("IOSpec.STM: " ++ msg)
-
-atomically :: (STMSpec :<: f) => STM a -> IOSpec f a
-atomically stm = inject $ Atomically stm (return)
-
-check :: Bool -> STM ()
-check True = return ()
-check False = retry
-
-instance Executable STMSpec where
-  step (Atomically stm b) = 
-    do state <- get
-       case runStateT (executeSTM stm) state of
-         Done (Nothing,_) -> return Block
-         Done (Just x,_) -> return (Step (b x))
-         _ -> internalError "Unsafe usage of STM"
-       

@@ -26,12 +26,12 @@ import Test.IOSpec.VirtualMachine
 -- By itself, 'MVars' is not terribly useful. You will probably want
 -- to use 'IOSpec (Forks :+: MVars)'.
 
-data MVarSpec a = 
+data MVars a =
      NewEmptyMVar (Loc -> a) 
   |  TakeMVar Loc (Data -> a) 
   |  PutMVar Loc Data a
 
-instance Functor MVarSpec where 
+instance Functor MVars where
   fmap f (NewEmptyMVar io) = NewEmptyMVar (f . io)
   fmap f (TakeMVar l io) = TakeMVar l (f . io)
   fmap f (PutMVar l d io) = PutMVar l d (f io)

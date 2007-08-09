@@ -174,7 +174,7 @@ execVM main = do
 
 runIOSpecSingleThreaded :: Executable f => IOSpec f a -> Effect a
 runIOSpecSingleThreaded io = evalStateT 
-                               (execVM io) 
+                               (execVM io)
                                (initialStore (streamSched (Stream.repeat mainTid)))
 
 runIOSpec :: Executable f =>  IOSpec f a -> Scheduler -> Effect a
@@ -188,7 +188,7 @@ instance Arbitrary ThreadId where
 
 instance Arbitrary Scheduler where
   arbitrary   = liftM streamSched arbitrary
-  coarbitrary = internalError 
+  coarbitrary = internalError
     "Test.IOSpec: no definition of coarbitrary for Schedulers."
 
 instance Show Scheduler where
