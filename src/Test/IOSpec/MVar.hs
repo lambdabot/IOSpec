@@ -2,8 +2,8 @@
 
 module Test.IOSpec.MVar
    (
-   -- * The IOConc monad
-     MVarSpec
+   -- * The 'MVars' spec
+     MVars
    -- * Supported functions
    , MVar
    , newEmptyMVar
@@ -17,7 +17,14 @@ import Data.Maybe (fromJust)
 import Test.IOSpec.Types
 import Test.IOSpec.VirtualMachine 
 
--- The IOConc data type and its instances
+-- | The 'MVars' data type and its instances.
+--
+-- An expression of type 'IOSpec MVars a' corresponds to an 'IO'
+-- computation that uses shared, mutable variables and returns a
+-- value of type 'a'.
+--
+-- By itself, 'MVars' is not terribly useful. You will probably want
+-- to use 'IOSpec (Forks :+: MVars)'.
 
 data MVarSpec a = 
      NewEmptyMVar (Loc -> a) 
@@ -33,20 +40,20 @@ instance Functor MVarSpec where
 newtype MVar a = MVar Loc deriving Typeable
 
 -- | The 'newEmptyMVar' function creates a new 'MVar' that is initially empty.
-newEmptyMVar        :: (Typeable a, MVarSpec :<: f) => IOSpec f (MVar a)
+newEmptyMVar        :: (Typeable a, MVars :<: f) => IOSpec f (MVar a)
 newEmptyMVar        = inject $ NewEmptyMVar (return . MVar)
  
 -- | The 'takeMVar' function removes the value stored in an
 -- 'MVar'. If the 'MVar' is empty, the thread is blocked.
-takeMVar            :: (Typeable a, MVarSpec :<: f) => MVar a -> IOSpec f a
+takeMVar            :: (Typeable a, MVars :<: f) => MVar a -> IOSpec f a
 takeMVar (MVar l)   = inject $ TakeMVar l (return . fromJust . fromDynamic)
 
 -- | The 'putMVar' function fills an 'MVar' with a new value. If the
 -- 'MVar' is not empty, the thread is blocked.
-putMVar             :: (Typeable a, MVarSpec :<: f) => MVar a -> a -> IOSpec f ()
+putMVar             :: (Typeable a, MVars :<: f) => MVar a -> a -> IOSpec f ()
 putMVar (MVar l) d  = inject $ PutMVar l (toDyn d) (return ())
 
-instance Executable MVarSpec where
+instance Executable MVars where
   step (NewEmptyMVar t) = do loc <- alloc
                              emptyLoc loc
                              return (Step (t loc))
@@ -62,4 +69,3 @@ instance Executable MVarSpec where
                                   updateHeap loc (Just d)
                                   return (Step t)
                                 Just _ -> return Block
-

@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+-- | A pure specification of mutable variables. 
 module Test.IOSpec.VirtualMachine
   ( ThreadId
   , Store
@@ -15,30 +15,26 @@ module Test.IOSpec.VirtualMachine
   , lookupHeap
   , freshThreadId
   , updateSoup
-  , emptyStore
+  , initialStore
   , emptyLoc
   , Executable(..)
   , Step(..)
-  , execute
+  , execVM
   , runIOSpecSingleThreaded
   , runIOSpec
   )
   where 
 
 import Control.Monad.State
---import Control.Monad.Reader
 import Data.Dynamic
 import Data.Stream as Stream
 import Test.IOSpec.Types
 import Test.QuickCheck
--- import Test.IOSpec.Execution
 
 newtype ThreadId  = ThreadId Int deriving (Eq, Show)
 type Data         = Dynamic
 type Loc          = Int
-
 type Heap         = Loc -> Maybe Data
-
 
 newtype Scheduler = 
   Scheduler (Int -> (ThreadId, Scheduler))
@@ -84,9 +80,6 @@ data Effect a =
   | ReadChar (Char -> Effect a)
   | Print Char (Effect a)
   | Fail String 
-
-instance Eq a => Eq (Effect a) where
-  (Done x) == (Done y) = x == y
 
 instance Functor Effect where
   fmap f (Done x) = Done (f x)
@@ -144,8 +137,8 @@ printChar c = StateT (\s -> (Print c (Done ((),s))))
 runVM :: VM a -> Store -> Effect (a, Store)
 runVM vm store = runStateT vm store
 
-emptyStore :: Scheduler -> Store
-emptyStore sch = Store { fresh = 0
+initialStore :: Scheduler -> Store
+initialStore sch = Store { fresh = 0
                        , heap = internalError "Access of unallocated memory."
                        , nextTid = ThreadId 1
                        , scheduler = sch
@@ -155,48 +148,48 @@ emptyStore sch = Store { fresh = 0
 class Functor f => Executable f where
   step :: f a -> VM (Step a)
 
+
 data Step a = Step a | Block
 
 instance (Executable f, Executable g) => Executable (f :+: g) where 
   step (Inl x) = step x
   step (Inr y) = step y
 
-execute :: Executable f => IOSpec f a -> VM a
-execute main = do
+execVM :: Executable f => IOSpec f a -> VM a
+execVM main = do
   (tid,t) <- schedule main
   case t of
     (Main (Pure x)) -> return x
     (Main (Impure p)) -> do x <- step p
                             case x of
-                              Step y -> execute y
-                              Block -> execute main
+                              Step y -> execVM y
+                              Block -> execVM main
     (Aux (Pure _)) -> do finishThread tid
-                         execute main
+                         execVM main
     (Aux (Impure p)) -> do x <- step p
                            case x of
-                             Step y -> updateSoup tid y >> execute main
-                             Block -> execute main
+                             Step y -> updateSoup tid y >> execVM main
+                             Block -> execVM main
                              
 
 runIOSpecSingleThreaded :: Executable f => IOSpec f a -> Effect a
 runIOSpecSingleThreaded io = evalStateT 
-                               (execute io) 
-                               (emptyStore (streamSched (Stream.repeat mainTid)))
+                               (execVM io) 
+                               (initialStore (streamSched (Stream.repeat mainTid)))
 
 runIOSpec :: Executable f =>  IOSpec f a -> Scheduler -> Effect a
 runIOSpec io xs = evalStateT 
-                    (execute io)
-                    (emptyStore xs)
+                    (execVM io)
+                    (initialStore xs)
 
 instance Arbitrary ThreadId where
-  arbitrary = liftM ThreadId arbitrary
+  arbitrary                = liftM ThreadId arbitrary
   coarbitrary (ThreadId k) = coarbitrary k
 
 instance Arbitrary Scheduler where
-  arbitrary = liftM streamSched arbitrary
-
-instance Arbitrary a => Arbitrary (Stream.Stream a) where
-  arbitrary = liftM2 Stream.Cons arbitrary arbitrary
+  arbitrary   = liftM streamSched arbitrary
+  coarbitrary = internalError 
+    "Test.IOSpec: no definition of coarbitrary for Schedulers."
 
 instance Show Scheduler where
   show _ = "Test.IOSpec.Scheduler"

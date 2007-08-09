@@ -1,4 +1,4 @@
-IOSpec version 0.1
+IOSpec version 0.2
   Author: Wouter Swierstra <wss@cs.nott.ac.uk>
 
 IOSpec provides a library containing pure, executable specifications
@@ -20,6 +20,8 @@ Please have a look at the latest documentation available from:
 
 To build the Haddock API execute the following command:
     $ runhaskell Setup.lhs haddock
+At the moment, this is broken. The code relies heavily on infix type
+constructors, which Haddock cannot parse.
 
 Check out the examples directory for the following examples:
 

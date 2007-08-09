@@ -52,6 +52,8 @@ import Prelude hiding (head, tail, map, iterate, take, drop, takeWhile,
   zipWith,words,unwords,lines,unlines, break, span, splitAt)
 
 import Control.Applicative
+import Test.QuickCheck
+import Control.Monad
 import Data.Char (isSpace)
 
 -- | An infinite sequence.
@@ -67,6 +69,10 @@ instance Applicative Stream where
 instance Monad Stream where
   return = repeat
   (Cons x xs) >>= f = Cons (head (f x)) (tail (xs >>= f))
+
+instance Arbitrary a => Arbitrary (Stream a) where
+  arbitrary = liftM2 Cons arbitrary arbitrary
+  coarbitrary (Cons x xs) = coarbitrary xs . coarbitrary x
 
 -- | Extract the first element of the sequence.
 head :: Stream a -> a
