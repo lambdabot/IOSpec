@@ -103,13 +103,13 @@ executeSTM :: STM a -> VM (Maybe a)
 executeSTM (STMReturn x)      = return (return x)
 executeSTM (NewTVar d io)     = do
   loc <- alloc
-  updateHeap loc (Just d)
+  updateHeap loc d
   executeSTM (io loc)
 executeSTM (ReadTVar l io)    = do
   (Just d) <- lookupHeap l
   executeSTM (io d)
 executeSTM (WriteTVar l d io) = do
-  updateHeap l (Just d)
+  updateHeap l d
   executeSTM io
 executeSTM Retry              = return Nothing
 executeSTM (OrElse p q)       = do

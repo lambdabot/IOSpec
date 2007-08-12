@@ -66,6 +66,6 @@ instance Executable MVars where
   step (PutMVar loc d t) = do var <- lookupHeap loc
                               case var of
                                 Nothing -> do
-                                  updateHeap loc (Just d)
+                                  updateHeap loc d
                                   return (Step t)
                                 Just _ -> return Block
