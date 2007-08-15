@@ -1,17 +1,15 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 import Test.QuickCheck
-import Test.IOSpec.Types
-import Test.IOSpec.IORef
-import Test.IOSpec.VirtualMachine hiding (Data)
+import Test.IOSpec
 import Data.Dynamic
 import Control.Monad
 
 -- We begin by giving an implementation of queues using our pure
 -- specification of IORefs.
 
-type Queue = (IORef Data, IORef Data)
+type Queue = (IORef Cell, IORef Cell)
 
-data Data  = Cell Int (IORef Data) | NULL deriving Typeable
+data Cell = Cell Int (IORef Cell) | NULL deriving Typeable
 
 -- There is one important point here. To use the IORefs in IOSpec,
 -- we need to make sure that any data we store in an IORef is an
@@ -21,13 +19,13 @@ data Data  = Cell Int (IORef Data) | NULL deriving Typeable
 -- The implementation of Queues is fairly standard. We use a linked
 -- list, with special pointers to the head and tail of the queue.
 
-emptyQueue :: IOSpec IOState Queue
+emptyQueue :: IOSpec Refs Queue
 emptyQueue  = do  
   front <- newIORef NULL 
   back <- newIORef NULL
   return (front,back)
 
-enqueue :: Queue -> Int -> IOSpec IOState ()
+enqueue :: Queue -> Int -> IOSpec Refs ()
 enqueue (front,back) x = 
   do  newBack <- newIORef NULL
       let cell = Cell x newBack
@@ -37,7 +35,7 @@ enqueue (front,back) x =
         NULL -> writeIORef front cell
         Cell y t -> writeIORef t cell
 
-dequeue :: Queue -> IOSpec IOState (Maybe Int)
+dequeue :: Queue -> IOSpec Refs (Maybe Int)
 dequeue (front,back) = do
   c <- readIORef front
   case c of
@@ -49,7 +47,7 @@ dequeue (front,back) = do
 
 -- Besides basic queue operations, we also implement queue reversal.
 
-reverseQueue :: Queue -> IOSpec IOState ()
+reverseQueue :: Queue -> IOSpec Refs ()
 reverseQueue (front,back) = do
   f <- readIORef front
   case f of
@@ -61,7 +59,7 @@ reverseQueue (front,back) = do
       writeIORef front b
       writeIORef back f
 
-flipPointers :: Data -> Data -> IOSpec IOState ()
+flipPointers :: Cell -> Cell -> IOSpec Refs ()
 flipPointers prev NULL = return ()
 flipPointers prev (Cell x next) = do
       nextCell <- readIORef next
@@ -70,10 +68,10 @@ flipPointers prev (Cell x next) = do
     
 -- A pair of functions that convert lists to queues and vice versa.
 
-queueToList :: Queue -> IOSpec IOState [Int]
+queueToList :: Queue -> IOSpec Refs [Int]
 queueToList = unfoldM dequeue
 
-listToQueue :: [Int] -> IOSpec IOState Queue
+listToQueue :: [Int] -> IOSpec Refs Queue
 listToQueue xs = do q <- emptyQueue
                     sequence_ (map (enqueue q) xs)
                     return q
@@ -85,40 +83,43 @@ unfoldM f a = do
     Nothing -> return []
     Just x -> liftM (x:) (unfoldM f a)
 
+-- When do we consider two Effects equal? In this case, we want the
+-- same final result, and no other visible effects.
+(===) :: Eq a => Effect a -> Effect a -> Bool
+Done x === Done y = x == y
+_ === _ = False
+
 -- Now we can state a few properties of queues.
-
 inversesProp :: [Int] -> Bool
-inversesProp xs = (return xs) == runIOSpecSingleThreaded (listToQueue xs >>= queueToList)
+inversesProp xs = 
+  (return xs) === evalIOSpec (listToQueue xs >>= queueToList) singleThreaded
 
-revRevProp xs = runIOSpecSingleThreaded revRevProg == return xs
+revRevProp xs = evalIOSpec revRevProg singleThreaded === return xs
   where
   revRevProg = do q <- listToQueue xs
                   reverseQueue q
                   reverseQueue q
                   queueToList q
 
-revProp xs = runIOSpecSingleThreaded revProg == return (reverse xs)
+revProp xs = evalIOSpec revProg singleThreaded === return (reverse xs)
   where
   revProg = do q <- listToQueue xs
                reverseQueue q
                queueToList q
 
-queueProp1 x = runIOSpecSingleThreaded queueProg1 == Done (Just x)
+queueProp1 x = evalIOSpec queueProg1 singleThreaded === Done (Just x)
   where
   queueProg1 = do q <- emptyQueue
                   enqueue q x
                   dequeue q
 
-queueProp2 x y = runIOSpecSingleThreaded queueProg2 == Done (Just y)
+queueProp2 x y = evalIOSpec queueProg2 singleThreaded === Done (Just y)
   where
   queueProg2 = do q <- emptyQueue
                   enqueue q x
                   enqueue q y
                   dequeue q
                   dequeue q
-
--- runIOSpecSingleThreaded :: IOSpec IOState a -> Effect a
--- runIOSpecSingleThreaded vm = fmap fst (runVM (execute vm) undefined (emptyStore undefined))
 
 main = do putStrLn "Testing first queue property..."
           quickCheck queueProp1

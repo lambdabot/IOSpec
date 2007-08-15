@@ -14,7 +14,7 @@ data Data =  Cell Int (MVar Data) deriving Typeable
 
 type Channel = (MVar (MVar Data), MVar (MVar Data))
 
-type IOConc a = IOSpec (MVarSpec :+: Fork) a
+type IOConc a = IOSpec (MVars :+: Forks) a
 
 newChan :: IOConc Channel
 newChan = do read <- newEmptyMVar
@@ -69,6 +69,13 @@ wait var xs  = do
     then return res
     else putMVar var res >> wait var xs
 
+
+-- When do we consider two Effects equal? In this case, we want the
+-- same final result, and no other visible effects.
+(===) :: Eq a => Effect a -> Effect a -> Bool
+Done x === Done y = x == y
+_ === _ = False
+
 -- To actually run concurrent programs, we must choose the scheduler
 -- with which to run. At the moment, IOSpec provides a simple
 -- round-robin scheduler; alternatively we can write our own
@@ -79,8 +86,8 @@ wait var xs  = do
 -- streamSched to implement a random scheduler -- thereby testing as
 -- many interleavings as possible.
 chanProp ints sched =
-  fmap sort (runIOSpec (chanTest ints) sched)
-  ==  Done (sort ints)
+  fmap sort (evalIOSpec (chanTest ints) sched)
+  ===  Done (sort ints)
 
 main = do putStrLn "Testing channels..."
           quickCheck chanProp
