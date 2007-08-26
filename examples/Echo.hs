@@ -6,6 +6,7 @@ import Prelude hiding (getChar, putChar)
 import qualified Data.Stream as Stream
 import Test.IOSpec
 import Test.QuickCheck
+import Data.Char (ord)
 
 -- The echo function, as we have always known it
 echo :: IOSpec Teletype ()
@@ -46,6 +47,7 @@ echoProp n input =
 
 instance Arbitrary Char where
   arbitrary = choose ('a','z')
+  coarbitrary = variant . ord
 
 main = do
   putStrLn "Testing echo..."
