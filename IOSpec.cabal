@@ -44,16 +44,18 @@ Extensions:		MultiParamTypeClasses
 Ghc-options:		-Wall -fglasgow-exts
 Hs-source-dirs:		src
 Extra-source-files:	README
+			, examples/Channels.hs
 			, examples/Echo.hs
 			, examples/Queues.hs
-			, examples/Channels.hs
+			, examples/Refs.hs
 Exposed-modules:	Data.Stream
 			, Test.IOSpec
-			, Test.IOSpec.Types
 			, Test.IOSpec.Fork
 			, Test.IOSpec.IORef
 			, Test.IOSpec.MVar
 			, Test.IOSpec.STM
-			, Test.IOSpec.Teletype
-			, Test.IOSpec.VirtualMachine
 			, Test.IOSpec.Surrogate
+			, Test.IOSpec.Teletype
+			, Test.IOSpec.Types
+			, Test.IOSpec.VirtualMachine
+
