@@ -18,9 +18,9 @@ module Test.IOSpec.Surrogate
 type IOSpec f a  = IO a
 
 -- | The original pure specifications now contain no information.
-data Forks a
-data MVars a
-data Refs a
-data STMs a
-data Teletype a
-data (f :+: g) x
+data Forks
+data MVars
+data Refs
+data STMs
+data Teletype
+data (f :+: g)

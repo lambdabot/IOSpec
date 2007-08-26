@@ -43,9 +43,9 @@ instance Executable STMs where
   step (Atomically stm b) =
     do state <- get
        case runStateT (executeSTM stm) state of
-         Done (Nothing,_) -> return Block
-         Done (Just x,finalState)  -> put finalState >> return (Step (b x))
-         _                -> internalError "Unsafe usage of STM"
+         Done (Nothing,_)         -> return Block
+         Done (Just x,finalState) -> put finalState >> return (Step (b x))
+         _                        -> internalError "Unsafe usage of STM"
 
 -- | The 'STM' data type and its instances.
 data STM a =   
