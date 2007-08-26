@@ -19,7 +19,7 @@ module Test.IOSpec.STM
 import Test.IOSpec.VirtualMachine
 import Test.IOSpec.Types
 import Data.Dynamic
-import Data.Maybe (fromJust, fromMaybe)
+import Data.Maybe (fromJust)
 import Control.Monad.State
 
 -- | The 'STMs' data type and its instances.

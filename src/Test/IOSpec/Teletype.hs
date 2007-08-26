@@ -6,10 +6,14 @@ module Test.IOSpec.Teletype
    -- * Pure getChar and putChar
    , getChar
    , putChar
+   , putStr
+   , putStrLn
+   , getLine
    ) 
    where
 
-import Prelude hiding (getChar, putChar)
+import Prelude hiding (getChar, putChar, putStr, putStrLn, getLine)
+import Control.Monad (forM_)
 import Test.IOSpec.Types
 import Test.IOSpec.VirtualMachine
 
@@ -47,3 +51,16 @@ instance Executable Teletype where
   step (PutChar c a) = do
     printChar c
     return (Step a)
+
+putStr :: (Teletype :<: f) => String -> IOSpec f ()
+putStr str = forM_ str putChar
+
+putStrLn :: (Teletype :<: f) => String -> IOSpec f ()
+putStrLn str = putStr str >> putChar '\n'
+
+getLine :: (Teletype :<: f) => IOSpec f String
+getLine = do
+  c <- getChar
+  if c == '\n'
+    then return []
+    else getLine >>= \line -> return (c : line)

@@ -77,8 +77,7 @@ data Store = Store {  fresh :: Loc
 
 initialStore :: Scheduler -> Store
 initialStore sch = Store { fresh = 0
-                       , heap = \loc ->
-                           internalError "Access of unallocated memory "
+                       , heap = internalError "Access of unallocated memory "
                        , nextTid = ThreadId 1
                        , scheduler = sch
                        , threadSoup = internalError "Unknown thread scheduled"
