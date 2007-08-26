@@ -5,7 +5,7 @@ import Data.List
 import Control.Monad
 
 -- Import these modules to test
-import Test.IOSpec
+import Test.IOSpec hiding (putStrLn)
 import Test.QuickCheck
 
 -- Drop the test modules and import these when you want to release
@@ -19,7 +19,7 @@ type Value            = Char
 
 data Sudoku = Sudoku [[Value]] deriving (Eq,Show)
 
-type Concurrency = STMs :+: Forks :+: MVars
+type Concurrency = STMS :+: ForkS :+: MVarS
 
 -- Some pure amenities
 
@@ -301,12 +301,12 @@ replace n x xs = take n xs ++ [x] ++ drop (n+1) xs
 
 main = do
   -- A few unit tests
-  putStr "Solving easy..."
+  putStrLn "Solving easy..."
   quickCheck (correctProp easy)
-  putStr "Solving gentle..."
+  putStrLn "Solving gentle..."
   quickCheck (correctProp gentle)
-  putStr "Solving diabolical..."
+  putStrLn "Solving diabolical..."
   quickCheck (correctProp diabolical)
   -- QuickCheck the solver
-  putStr "Solving random tests..."
+  putStrLn "Solving random tests..."
   quickCheck correctProp

@@ -5,10 +5,10 @@ module Test.IOSpec.Surrogate
   -- * The IOSpec type
     IOSpec
   -- * The specifications
-  , Forks
-  , MVars
-  , Refs
-  , STMs
+  , ForkS
+  , MVarS
+  , IORefS
+  , STMS
   , Teletype
   , (:+:)
   )
@@ -18,9 +18,9 @@ module Test.IOSpec.Surrogate
 type IOSpec f a  = IO a
 
 -- | The original pure specifications now contain no information.
-data Forks
-data MVars
-data Refs
-data STMs
+data ForkS
+data MVarS
+data IORefS
+data STMS
 data Teletype
 data (f :+: g)

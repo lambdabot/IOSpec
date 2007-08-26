@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 import Test.QuickCheck
-import Test.IOSpec
+import Test.IOSpec hiding (putStrLn)
 import Data.Dynamic
 import Control.Monad
 
@@ -19,13 +19,13 @@ data Cell = Cell Int (IORef Cell) | NULL deriving Typeable
 -- The implementation of Queues is fairly standard. We use a linked
 -- list, with special pointers to the head and tail of the queue.
 
-emptyQueue :: IOSpec Refs Queue
+emptyQueue :: IOSpec IORefS Queue
 emptyQueue  = do  
   front <- newIORef NULL 
   back <- newIORef NULL
   return (front,back)
 
-enqueue :: Queue -> Int -> IOSpec Refs ()
+enqueue :: Queue -> Int -> IOSpec IORefS ()
 enqueue (front,back) x = 
   do  newBack <- newIORef NULL
       let cell = Cell x newBack
@@ -35,7 +35,7 @@ enqueue (front,back) x =
         NULL -> writeIORef front cell
         Cell y t -> writeIORef t cell
 
-dequeue :: Queue -> IOSpec Refs (Maybe Int)
+dequeue :: Queue -> IOSpec IORefS (Maybe Int)
 dequeue (front,back) = do
   c <- readIORef front
   case c of
@@ -47,7 +47,7 @@ dequeue (front,back) = do
 
 -- Besides basic queue operations, we also implement queue reversal.
 
-reverseQueue :: Queue -> IOSpec Refs ()
+reverseQueue :: Queue -> IOSpec IORefS ()
 reverseQueue (front,back) = do
   f <- readIORef front
   case f of
@@ -59,7 +59,7 @@ reverseQueue (front,back) = do
       writeIORef front b
       writeIORef back f
 
-flipPointers :: Cell -> Cell -> IOSpec Refs ()
+flipPointers :: Cell -> Cell -> IOSpec IORefS ()
 flipPointers prev NULL = return ()
 flipPointers prev (Cell x next) = do
       nextCell <- readIORef next
@@ -68,10 +68,10 @@ flipPointers prev (Cell x next) = do
     
 -- A pair of functions that convert lists to queues and vice versa.
 
-queueToList :: Queue -> IOSpec Refs [Int]
+queueToList :: Queue -> IOSpec IORefS [Int]
 queueToList = unfoldM dequeue
 
-listToQueue :: [Int] -> IOSpec Refs Queue
+listToQueue :: [Int] -> IOSpec IORefS Queue
 listToQueue xs = do q <- emptyQueue
                     sequence_ (map (enqueue q) xs)
                     return q

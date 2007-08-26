@@ -12,7 +12,7 @@ Description:		This package consists of several modules, that give a
                            * "Test.IOSpec.Fork": a pure specification of
 			      'forkIO'.
 			.
-			   * "Test.IOSpec.Ref": a pure specification of most
+			   * "Test.IOSpec.IORef": a pure specification of most
 			      functions that create and manipulate on 'IORefs'.
 			.
 			   * "Test.IOSpec.MVar": a pure specification of most
@@ -51,7 +51,7 @@ Exposed-modules:	Data.Stream
 			, Test.IOSpec
 			, Test.IOSpec.Types
 			, Test.IOSpec.Fork
-			, Test.IOSpec.Ref
+			, Test.IOSpec.IORef
 			, Test.IOSpec.MVar
 			, Test.IOSpec.STM
 			, Test.IOSpec.Teletype

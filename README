@@ -20,14 +20,18 @@ Please have a look at the latest documentation available from:
 
 To build the Haddock API execute the following command:
     $ runhaskell Setup.lhs haddock
+
 At the moment, this is broken. The code relies heavily on infix type
-constructors, which Haddock cannot parse.
+constructors, which Haddock cannot parse. This should be possible
+again once ghc 6.8 is released.
 
 Check out the examples directory for the following examples:
 
     * Echo.hs - illustrates how to test the echo function.
     * Queues.hs - an implementation of queues using IORefs.
     * Channels.hs - an implementation of channels using MVars.
+    * Sudoku.hs - a parallel Sudoku solver that uses STM and MVars
+         based on Graham Hutton's version of Richard Bird's "Solving Sudoku".
 
 Every example contains quite some comments, explaining how to use
 the library.

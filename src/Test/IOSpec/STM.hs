@@ -1,7 +1,7 @@
 module Test.IOSpec.STM
    (
    -- * The specification of STM
-     STMs
+     STMS
    -- * Atomically
    , atomically
    -- * The STM monad
@@ -22,24 +22,24 @@ import Data.Dynamic
 import Data.Maybe (fromJust)
 import Control.Monad.State
 
--- | The 'STMs' data type and its instances.
--- An expression of type 'IOSpec STMs a' corresponds to an 'IO'
+-- | The 'STMS' data type and its instances.
+-- An expression of type 'IOSpec STMS a' corresponds to an 'IO'
 -- computation that uses 'atomically' and returns a value of
 -- type 'a'.
 --
--- By itself, 'STMs' is not terribly useful. You will probably want
--- to use 'IOSpec (Forks :+: STMs)'.
-data STMs a =
+-- By itself, 'STMS' is not terribly useful. You will probably want
+-- to use 'IOSpec (Forks :+: STMS)'.
+data STMS a =
   forall b . Atomically (STM b) (b -> a)
 
-instance Functor STMs where
+instance Functor STMS where
   fmap f (Atomically s io) = Atomically s (f . io)
 
 -- | The 'atomically' function atomically executes an 'STM' action.
-atomically     :: (STMs :<: f) => STM a -> IOSpec f a
+atomically     :: (STMS :<: f) => STM a -> IOSpec f a
 atomically stm = inject $ Atomically stm (return)
 
-instance Executable STMs where
+instance Executable STMS where
   step (Atomically stm b) =
     do state <- get
        case runStateT (executeSTM stm) state of

@@ -3,7 +3,7 @@ import Test.QuickCheck
 import Control.Monad
 import Data.Maybe (fromJust, isJust)
 import Data.List (sort)
-import Test.IOSpec hiding (Data)
+import Test.IOSpec hiding (Data,putStrLn)
 import Data.Dynamic
 
 -- An implementation of channels using MVars. Simon Peyton Jones's
@@ -14,7 +14,7 @@ data Data =  Cell Int (MVar Data) deriving Typeable
 
 type Channel = (MVar (MVar Data), MVar (MVar Data))
 
-type IOConc a = IOSpec (MVars :+: Forks) a
+type IOConc a = IOSpec (MVarS :+: ForkS) a
 
 newChan :: IOConc Channel
 newChan = do read <- newEmptyMVar

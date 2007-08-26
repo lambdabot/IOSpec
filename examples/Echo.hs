@@ -4,7 +4,7 @@
 
 import Prelude hiding (getChar, putChar)
 import qualified Data.Stream as Stream
-import Test.IOSpec
+import Test.IOSpec hiding (putStrLn)
 import Test.QuickCheck
 import Data.Char (ord)
 
