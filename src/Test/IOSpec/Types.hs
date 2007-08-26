@@ -35,6 +35,8 @@ foldIOSpec pure impure (Impure t) = impure (fmap (foldIOSpec pure impure) t)
 -- | The coproduct of functors
 data (f :+: g) x = Inl (f x) | Inr (g x)
 
+infixr 5 :+:
+
 instance (Functor f, Functor g) => Functor (f :+: g) where
   fmap f (Inl x) = Inl (fmap f x)
   fmap f (Inr y) = Inr (fmap f y)

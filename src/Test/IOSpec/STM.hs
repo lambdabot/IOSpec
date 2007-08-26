@@ -19,7 +19,7 @@ module Test.IOSpec.STM
 import Test.IOSpec.VirtualMachine
 import Test.IOSpec.Types
 import Data.Dynamic
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, fromMaybe)
 import Control.Monad.State
 
 -- | The 'STMs' data type and its instances.
@@ -44,7 +44,7 @@ instance Executable STMs where
     do state <- get
        case runStateT (executeSTM stm) state of
          Done (Nothing,_) -> return Block
-         Done (Just x,_)  -> return (Step (b x))
+         Done (Just x,finalState)  -> put finalState >> return (Step (b x))
          _                -> internalError "Unsafe usage of STM"
 
 -- | The 'STM' data type and its instances.
