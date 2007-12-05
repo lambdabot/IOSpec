@@ -3,6 +3,7 @@
 -- definitions in the prelude and work with the pure specification.
 
 import Prelude hiding (getChar, putChar)
+import qualified Prelude (putStrLn)
 import qualified Data.Stream as Stream
 import Test.IOSpec hiding (putStrLn)
 import Test.QuickCheck
@@ -32,7 +33,7 @@ takeOutput _ _ = error "Echo.takeOutput"
 withInput :: Stream.Stream Char -> Effect a -> Effect a
 withInput stdin (Done x)     = Done x
 withInput stdin (Print c e)  = Print c (withInput stdin e)
-withInput stdin (ReadChar f) = withInput (Stream.tail stdin) 
+withInput stdin (ReadChar f) = withInput (Stream.tail stdin)
                                  (f (Stream.head stdin))
 
 -- We can use QuickCheck to test if our echo function meets the
@@ -50,7 +51,7 @@ instance Arbitrary Char where
   coarbitrary = variant . ord
 
 main = do
-  putStrLn "Testing echo..."
+  Prelude.putStrLn "Testing echo..."
   quickCheck echoProp
 
 -- Once we are satisfied with our definition of echo, we can change

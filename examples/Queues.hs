@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 import Test.QuickCheck
 import Test.IOSpec hiding (putStrLn)
+import Prelude hiding (putStrLn)
+import qualified Prelude (putStrLn)
 import Data.Dynamic
 import Control.Monad
 
@@ -20,17 +22,17 @@ data Cell = Cell Int (IORef Cell) | NULL deriving Typeable
 -- list, with special pointers to the head and tail of the queue.
 
 emptyQueue :: IOSpec IORefS Queue
-emptyQueue  = do  
-  front <- newIORef NULL 
+emptyQueue  = do
+  front <- newIORef NULL
   back <- newIORef NULL
   return (front,back)
 
 enqueue :: Queue -> Int -> IOSpec IORefS ()
-enqueue (front,back) x = 
+enqueue (front,back) x =
   do  newBack <- newIORef NULL
       let cell = Cell x newBack
       c <- readIORef back
-      writeIORef back cell 
+      writeIORef back cell
       case c of
         NULL -> writeIORef front cell
         Cell y t -> writeIORef t cell
@@ -65,7 +67,7 @@ flipPointers prev (Cell x next) = do
       nextCell <- readIORef next
       writeIORef next prev
       flipPointers (Cell x next) nextCell
-    
+
 -- A pair of functions that convert lists to queues and vice versa.
 
 queueToList :: Queue -> IOSpec IORefS [Int]
@@ -91,7 +93,7 @@ _ === _ = False
 
 -- Now we can state a few properties of queues.
 inversesProp :: [Int] -> Bool
-inversesProp xs = 
+inversesProp xs =
   (return xs) === evalIOSpec (listToQueue xs >>= queueToList) singleThreaded
 
 revRevProp xs = evalIOSpec revRevProg singleThreaded === return xs
@@ -121,15 +123,15 @@ queueProp2 x y = evalIOSpec queueProg2 singleThreaded === Done (Just y)
                   dequeue q
                   dequeue q
 
-main = do putStrLn "Testing first queue property..."
+main = do Prelude.putStrLn "Testing first queue property..."
           quickCheck queueProp1
-          putStrLn "Testing second queue property..."
+          Prelude.putStrLn "Testing second queue property..."
           quickCheck queueProp2
-          putStrLn "Testing queueToList and listToQueue.."
+          Prelude.putStrLn "Testing queueToList and listToQueue.."
           quickCheck inversesProp
-          putStrLn "Testing that reverseQueue is its own inverse..."
+          Prelude.putStrLn "Testing that reverseQueue is its own inverse..."
           quickCheck revRevProp
-          putStrLn "Testing reverseQueue matches the spec..."
+          Prelude.putStrLn "Testing reverseQueue matches the spec..."
           quickCheck revProp
 -- Once we are satisfied with our implementation, we can import the
 -- "real" Data.IORef instead of Test.IOSpec.IORef.

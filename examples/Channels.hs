@@ -25,14 +25,14 @@ newChan = do read <- newEmptyMVar
 	     return (read,write)
 
 putChan :: Channel -> Int -> IOConc ()
-putChan (_,write) val = 
+putChan (_,write) val =
   do newHole <- newEmptyMVar
      oldHole <- takeMVar write
      putMVar write newHole
      putMVar oldHole (Cell val newHole)
 
 getChan :: Channel -> IOConc Int
-getChan (read,write) = 
+getChan (read,write) =
   do headVar <- takeMVar read
      Cell val newHead <- takeMVar headVar
      putMVar read newHead
@@ -58,14 +58,14 @@ chanTest ints = do
   ch <- newChan
   result <- newEmptyMVar
   putMVar result []
-  forM ints (\i -> forkIO (writer ch i)) 
+  forM ints (\i -> forkIO (writer ch i))
   replicateM (length ints) (forkIO (reader ch result))
-  wait result ints 
+  wait result ints
 
 wait :: MVar [Int] -> [Int] -> IOConc [Int]
 wait var xs  = do
   res <- takeMVar var
-  if length res == length xs 
+  if length res == length xs
     then return res
     else putMVar var res >> wait var xs
 

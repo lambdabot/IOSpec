@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fglasgow-exts #-}
+
 -- Based on Graham Hutton's version of Richard Bird's Sudoku solver.
 module Main where
 
@@ -127,7 +129,7 @@ prune ms = do
   takeMVar colsDone
   takeMVar boxesDone
 
-pruneBy :: MVar () -> (Matrix Choices -> Matrix Choices) 
+pruneBy :: MVar () -> (Matrix Choices -> Matrix Choices)
   -> Matrix Choices -> IOSpec Concurrency ()
 pruneBy mvar f m = do
   atomically $ mapM_ reduce (f m)
@@ -161,7 +163,7 @@ consistent            =  nodups . concat . filter single
 blocked               :: Matrix Choices -> STM Bool
 blocked m             =  liftM2 (||) (void m) (isInconsistent m)
 
--- The search function checks 
+-- The search function checks
 --
 -- * if the board is blocked, we cannot make any progress in this
 -- thread
@@ -193,7 +195,7 @@ expand matrix = do
   ms <- atomically $ mapM (mapM readTVar) matrix
   let mms = expand' ms
   atomically $ mapM (mapM (mapM newTVar)) mms
-  
+
 expand'                :: [[Choices]] -> [[[Choices]]]
 expand' m              =
    [rows1 ++ [row1 ++ [c] : row2] ++ rows2 | c <- cs]
@@ -267,21 +269,21 @@ solution = ["295743861",
 
 -- Given a sudoku puzzle, solve it and check that your solution is ok.
 correctProp :: Sudoku -> Bool
-correctProp sudoku = 
-  let 
+correctProp sudoku =
+  let
     (Done computed) = evalIOSpec (solve sudoku) roundRobin
   in isSolution computed
 
 -- Determines when a sudoku has been filled in properly.
 isSolution :: Sudoku -> Bool
-isSolution (Sudoku grid) = 
+isSolution (Sudoku grid) =
   isOk (boxes grid) && isOk (cols grid) && isOk (rows grid)
   where
     isOk xss = all (== values) (map sort xss)
 
 -- To generate a random sudoku puzzle, we delete a number of cells
 -- from a solved grid.
-instance Arbitrary Sudoku where 
+instance Arbitrary Sudoku where
   arbitrary  = do
     xs <- arbitrary
     return (Sudoku $ blankOut xs (concat solution))
@@ -291,7 +293,7 @@ instance Arbitrary Sudoku where
 
 blankOut :: [Int] -> [Value] -> [[Value]]
 blankOut [] grid     = chop (boxsize * boxsize) grid
-blankOut (x:xs) grid = 
+blankOut (x:xs) grid =
   let
     y = x `mod` 81
   in blankOut xs (replace y '.' grid)
@@ -310,3 +312,4 @@ main = do
   -- QuickCheck the solver
   putStrLn "Solving random tests..."
   quickCheck correctProp
+
