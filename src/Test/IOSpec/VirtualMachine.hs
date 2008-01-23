@@ -103,6 +103,14 @@ modifyNextTid :: (ThreadId -> ThreadId) -> VM ()
 modifyNextTid f         = do s <- get
                              put (s {nextTid = f (nextTid s)})
 
+modifyBlockedThreads :: ([ThreadId] -> [ThreadId]) -> VM ()
+modifyBlockedThreads f  = do s <- get
+                             put (s {blockedThreads = f (blockedThreads s)})
+
+modifyFinishedThreads :: ([ThreadId] -> [ThreadId]) -> VM ()
+modifyFinishedThreads f  = do s <- get
+                              put (s {finishedThreads = f (finishedThreads s)})
+
 modifyScheduler :: (Scheduler -> Scheduler) -> VM ()
 modifyScheduler f       = do s <- get
                              put (s {scheduler = f (scheduler s)})
@@ -119,13 +127,13 @@ modifyThreadSoup f = do s <- get
 type VM a = StateT Store Effect a
 
 -- | The 'alloc' function allocate a fresh location on the heap.
-alloc :: VM Loc 
+alloc :: VM Loc
 alloc = do  loc <- gets fresh
             modifyFresh ((+) 1)
             return loc
 
 -- | The 'emptyLoc' function removes the data stored at a given
--- location. This corresponds, for instance, to emptying an 'MVar'.
+-- location. This corresponds, for instance, to emptying an @MVar@.
 emptyLoc :: Loc -> VM ()
 emptyLoc l = modifyHeap (update l Nothing)
 
@@ -139,8 +147,19 @@ freshThreadId = do
 -- | The 'finishThread' function kills the thread with the specified
 -- 'ThreadId'.
 finishThread :: ThreadId -> VM ()
-finishThread tid = modifyThreadSoup (update tid Finished)
+finishThread tid = do
+  modifyFinishedThreads (tid:)
+  modifyThreadSoup (update tid Finished)
 
+-- | The 'blockThread' method is used to record when a thread cannot
+-- make progress.
+blockThread :: ThreadId -> VM ()
+blockThread tid = modifyBlockedThreads (tid:)
+
+-- | When progress is made, the 'resetBlockedThreads' function
+-- | ensures that any thread can be scheduled.
+resetBlockedThreads :: VM ()
+resetBlockedThreads = modifyBlockedThreads (const [])
 
 -- | The 'lookupHeap' function returns the data stored at a given
 -- heap location, if there is any.
@@ -177,11 +196,11 @@ update l d h k
 
 -- | The 'Effect' type contains all the primitive effects that are
 -- observable on the virtual machine.
-data Effect a = 
-    Done a 
+data Effect a =
+    Done a
   | ReadChar (Char -> Effect a)
   | Print Char (Effect a)
-  | Fail String 
+  | Fail String
 
 instance Functor Effect where
   fmap f (Done x) = Done (f x)
@@ -196,19 +215,19 @@ instance Monad Effect where
   (Print c t) >>= f = Print c (t >>= f)
   (Fail msg) >>= _ = Fail msg
 
--- | The 'roundRobin' scheduler simple round-robin scheduler.
+-- | The 'roundRobin' scheduler provides a simple round-robin scheduler.
 roundRobin :: Scheduler
-roundRobin = streamSched (Stream.unfold (\k -> (ThreadId k, k+1)) 0)
+roundRobin = streamSched (Stream.unfold (\k -> (k, k+1)) 0)
 
 -- | The 'singleThreaded' scheduler will never schedule forked
 -- threads, always scheduling the main thread. Only use this
 -- scheduler if your code is not concurrent.
 singleThreaded :: Scheduler
-singleThreaded = streamSched (Stream.repeat mainTid)
+singleThreaded = streamSched (Stream.repeat 0)
 
-streamSched :: Stream.Stream ThreadId -> Scheduler
-streamSched (Stream.Cons (ThreadId x) xs) = 
-  Scheduler (\k -> (ThreadId (x `mod` k), streamSched xs))
+streamSched :: Stream.Stream Int -> Scheduler
+streamSched (Stream.Cons x xs) =
+  Scheduler (\k -> (x `mod` k, streamSched xs))
 
 
 -- | The 'Executable' type class captures all the different types of
@@ -218,7 +237,7 @@ class Functor f => Executable f where
 
 data Step a = Step a | Block
 
-instance (Executable f, Executable g) => Executable (f :+: g) where 
+instance (Executable f, Executable g) => Executable (f :+: g) where
   step (Inl x) = step x
   step (Inr y) = step y
 
@@ -229,30 +248,37 @@ execVM :: Executable f => IOSpec f a -> VM a
 execVM main = do
   (tid,t) <- schedule main
   case t of
-    (Main (Pure x)) -> return x
+    (Main (Pure x)) -> resetBlockedThreads >> return x
     (Main (Impure p)) -> do x <- step p
                             case x of
-                              Step y -> execVM y
-                              Block -> execVM main
+                              Step y -> resetBlockedThreads >> execVM y
+                              Block -> blockThread mainTid >> execVM main
     (Aux (Pure _)) -> do finishThread tid
                          execVM main
     (Aux (Impure p)) -> do x <- step p
                            case x of
-                             Step y -> updateSoup tid y >> execVM main
-                             Block -> execVM main
-                             
+                             Step y -> resetBlockedThreads >>
+                                       updateSoup tid y >>
+                                       execVM main
+                             Block -> blockThread tid >>
+                                      execVM main
 -- A Process is the result of a call to the scheduler.
-data Process a = 
+data Process a =
      forall f . Executable f => Main (IOSpec f a)
   |  forall f b . Executable f => Aux (IOSpec f b)
 
 -- Gets the ThreadId of the next thread to schedule.
 getNextThreadId :: VM ThreadId
-getNextThreadId = do  Scheduler sch <- gets scheduler
-                      (ThreadId n) <- gets nextTid
-                      let (tid,s) = sch n
-                      modifyScheduler (const s)
-                      return tid
+getNextThreadId = do
+  Scheduler sch <- gets scheduler
+  (ThreadId total) <- gets nextTid
+  let allTids = [ThreadId i | i <- [0 .. total - 1]]
+  blockedTids <- gets blockedThreads
+  finishedTids <- gets finishedThreads
+  let activeThreads = allTids \\ (blockedTids `union` finishedTids)
+  let (i,s) = sch (length activeThreads)
+  modifyScheduler (const s)
+  return (activeThreads !! i)
 
 -- The 'schedule' function tries to schedule an active thread,
 -- returning the scheduled thread's ThreadId and the process
@@ -264,15 +290,16 @@ schedule main = do  tid <- getNextThreadId
                       else do
                         tsoup <- gets threadSoup
                         case tsoup tid of
-                          Finished ->  schedule main
+                          Finished ->  internalError
+                            "Scheduled finished thread."
                           Running p -> return (tid, Aux p)
 
 -- | The 'runIOSpec' function is the heart of this library.  Given
 -- the scheduling algorithm you want to use, it will run a value of
--- type 'IOSpec f a', returning the sequence of observable effects
+-- type 'IOSpec' @f@ @a@, returning the sequence of observable effects
 -- together with the final store.
 runIOSpec :: Executable f => IOSpec f a -> Scheduler -> Effect (a, Store)
-runIOSpec io sched = runStateT 
+runIOSpec io sched = runStateT
                        (execVM io)
                        (initialStore sched)
 
@@ -284,16 +311,16 @@ runIOSpec io sched = runStateT
 -- reads a character from the teletype, for instance, it will return
 -- an error.
 execIOSpec :: Executable f => IOSpec f a -> Scheduler -> Store
-execIOSpec io sched = 
+execIOSpec io sched =
   case runIOSpec io sched of
     Done (_,s) -> s
     _ -> error $ "Failed application of Test.IOSpec.execIOSpec.\n" ++
-                 "Probable cause: your function uses functions such as " ++ 
+                 "Probable cause: your function uses functions such as " ++
                  "putChar and getChar. Check the preconditions for calling " ++
                  "this function in the IOSpec documentation."
 
 -- | The 'evalIOSpec' function returns the effects a computation
--- | yields, but discards the final state of the virtual machine.
+-- yields, but discards the final state of the virtual machine.
 evalIOSpec :: Executable f => IOSpec f a -> Scheduler -> Effect a
 evalIOSpec io sched = fmap fst (runIOSpec io sched)
 
