@@ -50,6 +50,7 @@ Extra-source-files:	README
 			, examples/Echo.hs
 			, examples/Queues.hs
 			, examples/Refs.hs
+			, examples/Sudoku.hs
 Exposed-modules:	Test.IOSpec
 			, Test.IOSpec.Fork
 			, Test.IOSpec.IORef
