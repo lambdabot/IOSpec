@@ -57,7 +57,15 @@ data STM a =
   | Retry
   | OrElse (STM a) (STM a)
 
-instance Monad STM where 
+instance Functor STM where
+  fmap f (STMReturn x)      = STMReturn (f x)
+  fmap f (NewTVar d io)     = NewTVar d (fmap f . io)
+  fmap f (ReadTVar l io)    = ReadTVar l (fmap f . io)
+  fmap f (WriteTVar l d io) = WriteTVar l d (fmap f io)
+  fmap _ Retry              = Retry
+  fmap f (OrElse io1 io2)   = OrElse (fmap f io1) (fmap f io2)
+
+instance Monad STM where
     return                = STMReturn
     STMReturn a >>= f     = f a
     NewTVar d g >>= f     = NewTVar d (\l -> g l >>= f)
