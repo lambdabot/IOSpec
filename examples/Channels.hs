@@ -85,6 +85,7 @@ _ === _ = False
 -- Using QuickCheck to generate a random stream, we can use the
 -- streamSched to implement a random scheduler -- thereby testing as
 -- many interleavings as possible.
+chanProp :: [Int] -> Scheduler -> Bool
 chanProp ints sched =
   fmap sort (evalIOSpec (chanTest ints) sched)
   ===  Done (sort ints)

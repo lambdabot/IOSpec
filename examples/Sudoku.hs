@@ -11,8 +11,8 @@ import Test.IOSpec hiding (putStrLn)
 import Test.QuickCheck
 
 -- Drop the test modules and import these when you want to release
---import Control.Concurrent
---import Control.Concurrent.STM
+-- import Control.Concurrent
+-- import Control.Concurrent.STM
 
 type Grid             = Matrix Value
 type Matrix a         = [Row a]
@@ -268,11 +268,13 @@ solution = ["295743861",
             "154938672"]
 
 -- Given a sudoku puzzle, solve it and check that your solution is ok.
-correctProp :: Sudoku -> Bool
-correctProp sudoku =
+unsolved :: Sudoku -> Int
+unsolved (Sudoku xs) = length $ filter (== '.') (concat xs)
+
+correctProp sudoku sched =
   let
-    (Done computed) = evalIOSpec (solve sudoku) roundRobin
-  in isSolution computed
+    (Done computed) = evalIOSpec (solve sudoku) sched
+  in collect (unsolved sudoku) (isSolution computed)
 
 -- Determines when a sudoku has been filled in properly.
 isSolution :: Sudoku -> Bool
@@ -287,9 +289,9 @@ instance Arbitrary Sudoku where
   arbitrary  = do
     xs <- arbitrary
     return (Sudoku $ blankOut xs (concat solution))
-  coarbitrary = error $ "Why do you need random functions " ++
-    "that manipulate Sudoku grids? I " ++
-    "thought you were writing a Sudoku solver?"
+--  coarbitrary = error $ "Why do you need random functions " ++
+--    "that manipulate Sudoku grids? I " ++
+--    "thought you were writing a Sudoku solver?"
 
 blankOut :: [Int] -> [Value] -> [[Value]]
 blankOut [] grid     = chop (boxsize * boxsize) grid
@@ -302,6 +304,7 @@ replace :: Eq a => Int -> a -> [a] -> [a]
 replace n x xs = take n xs ++ [x] ++ drop (n+1) xs
 
 main = do
+  putStrLn "Running QuickCheck tests..."
   -- A few unit tests
   putStrLn "Solving easy..."
   quickCheck (correctProp easy)
@@ -309,7 +312,7 @@ main = do
   quickCheck (correctProp gentle)
   putStrLn "Solving diabolical..."
   quickCheck (correctProp diabolical)
-  -- QuickCheck the solver
+--   -- QuickCheck the solver
   putStrLn "Solving random tests..."
   quickCheck correctProp
 
