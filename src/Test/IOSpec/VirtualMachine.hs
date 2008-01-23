@@ -23,6 +23,7 @@ module Test.IOSpec.VirtualMachine
   -- * The observable effects on the VM
   , Effect (..)
   -- * Sample schedulers
+  -- $schedulerDoc
   , roundRobin
   , singleThreaded
   -- * Executing code on the VM
@@ -214,6 +215,14 @@ instance Monad Effect where
   (ReadChar t) >>= f = ReadChar (\c -> t c >>= f)
   (Print c t) >>= f = Print c (t >>= f)
   (Fail msg) >>= _ = Fail msg
+
+-- $schedulerDoc
+--
+-- There are two example scheduling algorithms 'roundRobin' and
+-- 'singleThreaded'. Note that 'Scheduler' is also an instance of
+-- @Arbitrary@. Using QuickCheck to generate random schedulers is a
+-- great way to maximise the number of interleavings that your tests
+-- cover.
 
 -- | The 'roundRobin' scheduler provides a simple round-robin scheduler.
 roundRobin :: Scheduler
