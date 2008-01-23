@@ -289,9 +289,7 @@ instance Arbitrary Sudoku where
   arbitrary  = do
     xs <- arbitrary
     return (Sudoku $ blankOut xs (concat solution))
---  coarbitrary = error $ "Why do you need random functions " ++
---    "that manipulate Sudoku grids? I " ++
---    "thought you were writing a Sudoku solver?"
+  coarbitrary = error "No instance coarbitrary for Sudoku grids"
 
 blankOut :: [Int] -> [Value] -> [[Value]]
 blankOut [] grid     = chop (boxsize * boxsize) grid
