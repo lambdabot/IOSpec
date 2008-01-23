@@ -36,10 +36,12 @@ Description:		This package consists of several modules, that give a
 			   * "Test.IOSpec.Surrogate": a drop-in replacement for
 			     the other modules. Import this and recompile your
 			     code once you've finished testing and debugging.
+			.
 			There are several well-documented examples included 
 			with the source distribution.
 Category:       	Testing
-Build-Depends:  	base, mtl, QuickCheck
+Build-Type:		Simple
+Build-Depends:  	base, mtl, QuickCheck < 2.0, Stream
 Extensions:		MultiParamTypeClasses
 Ghc-options:		-Wall -fglasgow-exts
 Hs-source-dirs:		src
@@ -48,8 +50,7 @@ Extra-source-files:	README
 			, examples/Echo.hs
 			, examples/Queues.hs
 			, examples/Refs.hs
-Exposed-modules:	Data.Stream
-			, Test.IOSpec
+Exposed-modules:	Test.IOSpec
 			, Test.IOSpec.Fork
 			, Test.IOSpec.IORef
 			, Test.IOSpec.MVar

@@ -1,5 +1,9 @@
 {-# OPTIONS_GHC -fallow-overlapping-instances#-}
-module Test.IOSpec.Types 
+-- | This module contains the basic data types underlying the
+-- 'IOSpec' library. Most of the types and classes in this module
+-- are described in
+-- <http://www.cs.nott.ac.uk/~wss/Publications/DataTypesALaCarte.pdf>.
+module Test.IOSpec.Types
   (
   -- * The 'IOSpec' type.
     IOSpec(..)
@@ -11,10 +15,10 @@ module Test.IOSpec.Types
   , inject
   ) where
 
--- | A value of type 'IOSpec f a' is either a pure value of type 'a'
--- or some effect, determined by 'f'. Crucially, 'IOSpec f' is a
--- monad, provided 'f' is a functor.
-data IOSpec f a = 
+-- | A value of type 'IOSpec' @f@ @a@ is either a pure value of type @a@
+-- or some effect, determined by @f@. Crucially, 'IOSpec' @f@ is a
+-- monad, provided @f@ is a functor.
+data IOSpec f a =
     Pure a
   | Impure (f (IOSpec f a))
 
@@ -52,7 +56,7 @@ instance Functor f => (:<:) f f where
 instance (Functor f, Functor g) => (:<:) f (f :+: g) where
   inj = Inl
 
-instance ((:<:) f g, Functor f, Functor g, Functor h) 
+instance ((:<:) f g, Functor f, Functor g, Functor h)
   => (:<:) f (h :+: g) where
     inj = Inr . inj
 

@@ -8,7 +8,7 @@ module Test.IOSpec
   , module Test.IOSpec.Teletype
 -- * The basic types
   , module Test.IOSpec.Types
--- * The virtual machine to execute the specs
+-- * The virtual machine
   , module Test.IOSpec.VirtualMachine
   ) where
 

@@ -1,7 +1,7 @@
--- | A pure specification of mutable variables. 
+-- | The virtual machine on which the specifications execute.
 module Test.IOSpec.VirtualMachine
   (
-  -- * The Virtual Machine 
+  -- * The Virtual Machine
    VM
   , Data
   , Loc
@@ -32,11 +32,12 @@ module Test.IOSpec.VirtualMachine
   , evalIOSpec
   , execIOSpec
   )
-  where 
+  where
 
 import Control.Monad.State
 import Data.Dynamic
-import Data.Stream as Stream
+import Data.List
+import qualified Data.Stream as Stream
 import Test.IOSpec.Types
 import Test.QuickCheck
 
@@ -50,8 +51,8 @@ instance Arbitrary ThreadId where
   arbitrary                = liftM ThreadId arbitrary
   coarbitrary (ThreadId k) = coarbitrary k
 
-newtype Scheduler = 
-  Scheduler (Int -> (ThreadId, Scheduler))
+newtype Scheduler =
+  Scheduler (Int -> (Int, Scheduler))
 
 instance Arbitrary Scheduler where
   arbitrary   = liftM streamSched arbitrary
@@ -62,26 +63,32 @@ instance Show Scheduler where
   show _ = "Test.IOSpec.Scheduler"
 
 
-data ThreadStatus = 
-     forall f b . Executable f => Running (IOSpec f b) 
+data ThreadStatus =
+     forall f b . Executable f => Running (IOSpec f b)
   |  Finished
 
 type ThreadSoup = ThreadId -> ThreadStatus
 
-data Store = Store {  fresh :: Loc
-                   ,  heap :: Heap
-                   ,  nextTid :: ThreadId
-                   ,  scheduler :: Scheduler
-                   ,  threadSoup :: ThreadSoup
-                   }
+data Store =
+  Store { fresh :: Loc
+        ,  heap :: Heap
+        ,  nextTid :: ThreadId
+        ,  blockedThreads :: [ThreadId]
+        ,  finishedThreads :: [ThreadId]
+        ,  scheduler :: Scheduler
+        ,  threadSoup :: ThreadSoup
+        }
 
 initialStore :: Scheduler -> Store
-initialStore sch = Store { fresh = 0
-                       , heap = internalError "Access of unallocated memory "
-                       , nextTid = ThreadId 1
-                       , scheduler = sch
-                       , threadSoup = internalError "Unknown thread scheduled"
-                       }
+initialStore sch =
+  Store { fresh = 0
+        , heap = internalError "Access of unallocated memory "
+        , nextTid = ThreadId 1
+        , blockedThreads = []
+        , finishedThreads = []
+        , scheduler = sch
+        , threadSoup = internalError "Unknown thread scheduled"
+        }
 
 -- Auxiliary functions
 modifyFresh :: (Loc -> Loc) -> VM ()

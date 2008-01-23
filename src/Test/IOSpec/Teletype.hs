@@ -9,7 +9,7 @@ module Test.IOSpec.Teletype
    , putStr
    , putStrLn
    , getLine
-   ) 
+   )
    where
 
 import Prelude hiding (getChar, putChar, putStr, putStrLn, getLine)
@@ -17,16 +17,16 @@ import Control.Monad (forM_)
 import Test.IOSpec.Types
 import Test.IOSpec.VirtualMachine
 
--- | The 'Teletype' specification.
+-- The 'Teletype' specification.
 --
--- An expression of type 'IOSpec Teletype a' corresponds to an 'IO'
+-- | An expression of type 'IOSpec' 'Teletype' @a@ corresponds to an @IO@
 -- computation that may print to or read from stdout and stdin
 -- respectively.
 --
 -- There is a minor caveat here. I assume that stdin and stdout are
 -- not buffered. This is not the standard behaviour in many Haskell
 -- compilers.
-data Teletype a = 
+data Teletype a =
      GetChar (Char -> a)
   |  PutChar Char a
 
@@ -36,7 +36,7 @@ instance Functor Teletype where
 
 -- | The 'getChar' function can be used to read a character from the
 -- teletype.
-getChar    :: (:<:) Teletype f => IOSpec f Char 
+getChar    :: (:<:) Teletype f => IOSpec f Char
 getChar    = inject (GetChar return)
 
 -- | The 'getChar' function can be used to print a character to the

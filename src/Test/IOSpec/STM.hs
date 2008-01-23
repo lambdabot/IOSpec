@@ -22,13 +22,14 @@ import Data.Dynamic
 import Data.Maybe (fromJust)
 import Control.Monad.State
 
--- | The 'STMS' data type and its instances.
--- An expression of type 'IOSpec STMS a' corresponds to an 'IO'
--- computation that uses 'atomically' and returns a value of
--- type 'a'.
+-- The 'STMS' data type and its instances.
+--
+-- | An expression of type @IOSpec 'STMS' a@ corresponds to an 'IO'
+-- computation that may use 'atomically' and returns a value of type
+-- @a@.
 --
 -- By itself, 'STMS' is not terribly useful. You will probably want
--- to use 'IOSpec (Forks :+: STMS)'.
+-- to use @IOSpec (ForkS :+: STMS)@.
 data STMS a =
   forall b . Atomically (STM b) (b -> a)
 
@@ -47,8 +48,8 @@ instance Executable STMS where
          Done (Just x,finalState) -> put finalState >> return (Step (b x))
          _                        -> internalError "Unsafe usage of STM"
 
--- | The 'STM' data type and its instances.
-data STM a =   
+-- The 'STM' data type and its instances.
+data STM a =
     STMReturn a
   | NewTVar Data (Loc -> STM a)
   | ReadTVar Loc (Data -> STM a)
@@ -93,9 +94,9 @@ check       :: Bool -> STM ()
 check True  = return ()
 check False = retry
 
--- | The 'orElse' function takes two 'STM' actions 'a1' and 'a2' and
--- performs 'a1'. If 'a1' calls 'retry' it performs 'a2'. If 'a1'
--- succeeds, on the other hand, 'a2' is not executed.
+-- | The 'orElse' function takes two 'STM' actions @stm1@ and @stm2@ and
+-- performs @stm1@. If @stm1@ calls 'retry' it performs @stm2@. If @stm1@
+-- succeeds, on the other hand, @stm2@ is not executed.
 orElse     :: STM a -> STM a -> STM a
 orElse p q = OrElse p q
 

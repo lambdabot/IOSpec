@@ -14,10 +14,15 @@ module Test.IOSpec.Surrogate
   )
   where
 
--- | The 'IOSpec f a' is merely type synonym for 'IO a'.
+-- | The @IOSpec f a@ is merely type synonym for @IO a@. Once you've
+-- tested a module, you can use these definitions to avoid having to
+-- change your type signatures.
+--
+-- Note that because this definition of 'IOSpec' ignores its @f@
+-- argument, each of 'ForkS', 'MVarS', etc., is simply an empty data
+-- type.
 type IOSpec f a  = IO a
 
--- | The original pure specifications now contain no information.
 data ForkS
 data MVarS
 data IORefS

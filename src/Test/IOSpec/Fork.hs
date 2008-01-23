@@ -3,28 +3,27 @@ module Test.IOSpec.Fork
    (
      ForkS
    , forkIO
-   ) 
+   )
    where
 
 import Test.IOSpec.VirtualMachine
 import Test.IOSpec.Types
 
--- | The 'ForkS' data type and its instances.
--- An expression of type 'IOSpec ForkS a' corresponds to an 'IO'
+-- The 'ForkS' data type and its instances.
+--
+-- | An expression of type @IOSpec ForkS a@ corresponds to an 'IO'
 -- computation that uses 'forkIO' and returns a value of
 -- type 'a'.
 --
 -- By itself, 'ForkS' is not terribly useful. You will probably want
--- to use 'IOSpec (ForkS :+: MVars)' or 'IOSpec (ForkS :+: STMs)'.
+-- to use @IOSpec (ForkS :+: MVarS)@ or @IOSpec (ForkS :+: STMS)@.
 data ForkS a =
   forall f b . Executable f => Fork (IOSpec f b) (ThreadId -> a)
 
 instance Functor ForkS where
   fmap f (Fork l io)      = Fork l (f . io)
 
--- | The 'forkIO' function forks off a new thread. It is not much
--- | use by itself, but may be useful if you combine it with either
--- | 'STM' or 'MVars'.
+-- | The 'forkIO' function forks off a new thread.
 forkIO :: (Executable f, ForkS :<: g) => IOSpec f a -> IOSpec g ThreadId
 forkIO p =  inject (Fork p return)
 
