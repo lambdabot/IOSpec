@@ -81,24 +81,26 @@
   }
 
 </style>
+
   <title>IOSpec</title>
 </head>
 
 <body>
   <h1>IOSpec: a pure specification of the IO monad</h1>
+
   <table>
-  <tr>
-  <td>
-  <p>IOSpec is a library containing a pure specification of several
-  functions in the IO monad. You can use these specifications to
-  test, debug, and reason about impure code.</p>
+    <tr>
+      <td>
+        <p>IOSpec is a library containing a pure specification of
+        several functions in the IO monad. You can use these
+        specifications to test, debug, and reason about impure
+        code.</p>
 
-  <h2>Introduction</h2>
+        <h2>Introduction</h2>
 
-  <p>To get a taste of what you can do, consider the following (not
-  terribly exciting) code snippet:</p>
-
-  <pre>
+        <p>To get a taste of what you can do, consider the
+        following (not terribly exciting) code snippet:</p>
+        <pre>
   import Test.IOSpec
 
   readOnce :: Int -&gt; IOSpec IORefS Int
@@ -115,28 +117,27 @@
     let once  = evalIOSpec (readOnce x) singleThreaded
         twice = evalIOSpec (readTwice x) singleThreaded
     in once == twice</pre>
-  </td>
-  <td>
-  <img class = "ralign" src="www/unsafe.jpg" alt="unsafePerformIO">
-  </td>
-  </tr>
+      </td>
+
+      <td><img class="ralign" src="www/unsafe.jpg" alt=
+      "unsafePerformIO"></td>
+    </tr>
   </table>
 
   <p>Values of type <code>IOSpec IORefS a</code> correspond to
-  computations that use IORefs, but no other parts of
-  the IO monad.  By convention, a trailing 'S' is used to denote a
-  specification; for example, values of type <code>IOSpec MVarS
-  a</code> correspond to IO computations using just MVars. </p>
+  computations that use IORefs, but no other parts of the IO monad.
+  By convention, a trailing 'S' is used to denote a specification;
+  for example, values of type <code>IOSpec MVarS a</code>
+  correspond to IO computations using just MVars.</p>
 
   <p>Sure enough, we can test the above <code>readIORefProp</code>
   property and learn what we knew all along: reading an IORef does
-  not modify its contents.  This might seem trivial, but this
+  not modify its contents. This might seem trivial, but this
   property does not hold for MVars, for instance.</p>
 
   <p>A more interesting example is an 'imperative' implementation
   of queues, using IORefs to create linked lists. Suppose we
   implement the following operations:</p>
-
   <pre>
   emptyQueue :: IOSpec IORefS Queue
   enqueue :: Queue -&gt; Int -&gt; IOSpec IORefS () ()
@@ -153,32 +154,29 @@
   primitives. These specifications can be combined as you see fit:
   you can define your own <code>IOSpec</code> monad <em>&agrave; la
   carte</em>. For instance, you may want to consider computations
-  that use <code>forkIO</code> and transactional memory:
+  that use <code>forkIO</code> and transactional memory:</p>
 
   <pre>type Transaction a = IOSpec (STMS :+: ForkS) a</pre>
 
   Using this type, the following code will type check:
-
   <pre>
   transfer :: Account -&gt; Account -&gt; Int -&gt; Transaction ()
   transfer from to amount =
-    atomically (deposit to amount >> withdraw from amount)</pre>
+    atomically (deposit to amount &gt;&gt; withdraw from amount)</pre>
 
-  assuming you have defined the <code>deposit</code> and
-  <code>withdraw</code> functions yourself.
-
-  However, using other effects than those provided by <code>STMS :+:
-  ForkS</code> will result in a type error. For instance, the
-  following code will fail to type check:
-
+  assuming you have defined the <code>deposit</code> and <code>
+  withdraw</code> functions yourself. However, using other effects
+  than those provided by <code>STMS :+: ForkS</code> will result in
+  a type error. For instance, the following code will fail to type
+  check:
   <pre>
   transfer :: Account -&gt; Account -&gt; Int -&gt; Transaction ()
   transfer from to amount = do
-    atomically (deposit to amount >> withdraw from amount)
+    atomically (deposit to amount &gt;&gt; withdraw from amount)
     putStr "I transferred the money."</pre>
 
   as it also calls the <code>putStr</code> function.
-  
+
   <h2>Download</h2>
 
   <p>A <a href="dist/IOSpec-0.2.tar.gz">a tarball containing the
@@ -187,58 +185,53 @@
   <p>Alternatively, you may want to check out the following darcs
   repository:</p>
   <pre>
-  darcs get http://www.cs.nott.ac.uk/~wss/repos/IOSpec
-</pre>
+  darcs get http://www.cs.nott.ac.uk/~wss/repos/IOSpec</pre>
 
-  <h2>Installation</h2>
-
-  You need to install IOSpec using <a href=
-"http://www.haskell.org/cabal/">Cabal</a>. Essentially, you need to
-download the sources and issue the following commands:
-
-<pre>
+  <h2>Installation</h2>You need to install IOSpec using <a href=
+  "http://www.haskell.org/cabal/">Cabal</a>. Essentially, you need
+  to download the sources and issue the following commands:
+  <pre>
 runhaskell Setup.lhs configure
 runhaskell Setup.lhs build
-runhaskell Setup.lhs install </pre>
+runhaskell Setup.lhs install</pre>
 
-  If you want to customise the installation process, you may want to
-read more about <a href=
-"http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html">
-installing packages using Cabal</a>.
+  If you want to customise the installation process, you may
+  want to read more about <a href=
+  "http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html">
+  installing packages using Cabal</a>.
 
   <h2>Documentation</h2>
 
   <p>The examples directory that comes with the sources contains
   several well-documented examples.</p>
 
-  <p>Unfortunately, I haven't succeeded in Haddock-ing the code. The
-  code relies on using infix type constructors that cause Haddock's
-  parser to choke. This should be fixed with next release of
-  Haddock. Apologies for the inconvenience.</p>
+  <p>Unfortunately, I haven't succeeded in Haddock-ing the code.
+  The code relies on using infix type constructors that cause
+  Haddock's parser to choke. This should be fixed with next release
+  of Haddock. Apologies for the inconvenience.</p>
 
   <p>The implementation is described in the following papers:</p>
 
-  <ul> <li><a href=
-    "http://www.cs.nott.ac.uk/~wss/Publications/BeautyInTheBeast.pdf">Beauty
-    in the Beast: A Functional Semantics for the Awkward
+  <ul>
+    <li><a href=
+    "http://www.cs.nott.ac.uk/~wss/Publications/BeautyInTheBeast.pdf">
+    Beauty in the Beast: A Functional Semantics for the Awkward
     Squad</a>. Haskell Workshop 2007.</li>
 
     <li><a href=
-    "http://www.cs.nott.ac.uk/~wss/Publications/DataTypesALaCarte.pdf"
-    >Data types &agrave; la carte</a>. Submitted for publication.</li>
-  </ul>
+    "http://www.cs.nott.ac.uk/~wss/Publications/DataTypesALaCarte.pdf">
+    Data types &agrave; la carte</a>. Submitted for
+    publication.</li>
+  </ul>I hope to finish writing the chapter of my thesis covering
+  IOSpec in the coming weeks, but don't hold your breath.
 
-  I hope to finish writing the chapter of my thesis covering IOSpec
-  in the coming weeks, but don't hold your breath.
-
-  <h2>Feedback</h2>
-  <img style="float: right"
-  width="102" height= "35" src="www/cabal.png" alt="Cabal">
+  <h2>Feedback</h2><img style="float: right" width="102" height=
+  "35" src="www/cabal.png" alt="Cabal">
 
   <p>If you have any comments or suggestions, please get in
-  touch!</p><a href = "http://www.cs.nott.ac.uk/~wss">Wouter Swierstra</a><br>
-  <script src=
-  "http://www.google-analytics.com/urchin.js" type=
+  touch!</p><a href="http://www.cs.nott.ac.uk/~wss">Wouter
+  Swierstra</a><br>
+  <script src="http://www.google-analytics.com/urchin.js" type=
   "text/javascript">
 </script><script type="text/javascript">
 _uacct = "UA-1372453-2";
