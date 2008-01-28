@@ -24,6 +24,7 @@ Description:		This package consists of several modules, that give a
 			   * "Test.IOSpec.Teletype": a pure specification of
 			      'getChar', 'putChar', and several related
 			      Prelude functions.
+			.
 			Besides these modules containing the specifications,
 			there are a few other important modules:
 			.
