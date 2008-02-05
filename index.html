@@ -12,8 +12,10 @@
   {
     font:12px verdana, sans-serif;
     color: #191919;
-    margin: 2ex 7.5% 2ex 7.5%;
+    margin: 2ex 12.5% 2ex 12.5%;
     padding-bottom: 2ex;
+    line-height: 140%;
+
   }
 
   .ralign
@@ -99,19 +101,19 @@
         <h2>Introduction</h2>
 
         <p>To get a taste of what you can do, consider implementing
-        an 'imperative' queue, using a pointers to build a linked
+        an 'imperative' queue using a pointers to build a linked
         list:</p>
         <pre>
 
-        import Test.IOSpec
+import Test.IOSpec
 
-        data Queue = Queue {front :: IORef Cell, back :: IORef Cell}
+data Queue = Queue {front :: IORef Cell, back :: IORef Cell}
 
-        data Cell = Cell Int (IORef Cell) | NULL
+data Cell = Cell Int (IORef Cell) | NULL
 
-        emptyQueue :: IOSpec IORefS Queue
-        enqueue :: Queue -&gt; Int -&gt; IOSpec IORefS () ()
-        dequeue :: Queue -&gt; IOSpec IORefS (Maybe Int)
+emptyQueue :: IOSpec IORefS Queue
+enqueue :: Queue -&gt; Int -&gt; IOSpec IORefS () ()
+dequeue :: Queue -&gt; IOSpec IORefS (Maybe Int)
         
 </pre>
       </td>
@@ -122,17 +124,22 @@
   </table>
 
   <p>Values of type <code>IOSpec IORefS a</code> correspond to
-  computations that use IORefs, but no other parts of the IO monad.
-  By convention, a trailing 'S' is used to denote a specification;
-  for example, values of type <code>IOSpec MVarS a</code>
-  correspond to IO computations using just MVars.</p>
+  computations that use IORefs, but no other parts of the IO monad,
+  and return a value of type <code>a</code>. By convention, a
+  trailing 'S' is used to denote a specification. For example,
+  values of type <code>IOSpec MVarS a</code> correspond to IO
+  computations using just MVars.</p>
 
-  <p>Sure enough, we can use tools such as <a href=
+  <p>These specifications are pure functions, running on a pure
+  <a href=
+  "http://www.cs.nott.ac.uk/~wss/repos/IOSpec/dist/doc/html/IOSpec/Test-IOSpec-VirtualMachine.html">
+  Virtual Machine</a>, that behave the same as their IO
+  counterparts. Using tools such as <a href=
   "http://www.cs.chalmers.se/~rjmh/QuickCheck/">QuickCheck</a> and
   the <a href=
   "http://www.haskell.org/ghc/docs/latest/html/users_guide/ghci-debugger.html">
-  GHCi debugger</a> to test and debug our implementation of queues
-  <em>as if it was pure</em>. Once we are satisfied with our
+  GHCi debugger</a> we can test and debug our implementation of
+  queues <em>as if it was pure</em>. Once we are satisfied with our
   implementation, we can import <a href=
   "http://haskell.cs.yale.edu/ghc/docs/latest/html/libraries/base/Data-IORef.html">
   Data.IORef</a> and use real IORefs, instead of the pure
@@ -142,31 +149,26 @@
   pure specifications of concurrency, STM, and teletype primitives.
   These specifications can be combined as you see fit: you can
   define your own <code>IOSpec</code> monad <em>&agrave; la
-  carte</em>. For instance, you may want to consider computations
-  that use <code>forkIO</code> and transactional memory:</p>
+  carte</em>. For example, concurrent code may want use MVars and
+  <code>forkIO</code>:</p>
   <pre>
-type Transaction a = IOSpec (STMS :+: ForkS) a
-</pre>The following code will then type check, provided you have
-defined the <code>deposit</code> and <code>withdraw</code>
-functions yourself:
-  <pre>
-  transfer :: Account -&gt; Account -&gt; Int -&gt; Transaction ()
-  transfer from to amount =
-    atomically (deposit to amount &gt;&gt; withdraw from amount)
-</pre>However, using other effects than those provided by
-<code>STMS :+: ForkS</code> will result in a type error. For
-example, the following code will fail to type check:
-  <pre>
-  transfer :: Account -&gt; Account -&gt; Int -&gt; Transaction ()
-  transfer from to amount = do
-    atomically (deposit to amount &gt;&gt; withdraw from amount)
-    putStr "I transferred the money."
-</pre>The <code>Transaction</code> type forbids calls to the <code>
-  putStr</code> function.
+type Concurrent a = IOSpec (MVarS :+: ForkS) a
+</pre>Functions of type <code>Concurrent a</code> may use certain
+IO functions, such as <code>newEmptyMVar</code> or
+<code>forkIO</code>, but not functions such as <code>putStr</code>.
+You may want to <a href=
+"http://www.cs.nott.ac.uk/~wss/repos/IOSpec/dist/doc/html/IOSpec/">
+  browse the API</a> to get a better idea of how the library is
+  organized.
+
+  <p>Haskell's careful treatment of IO shows how being <em>precise
+  about effects</em> can help you write more reliable code. I'd
+  like to think that the IOSpec library takes some of these ideas
+  one step further.</p>
 
   <h2>Download</h2>
 
-  <p>A <a href="dist/IOSpec-0.2.tar.gz">a tarball containing the
+  <p>A <a href="dist/IOSpec-0.2.tar.gz">tarball containing the
   sources</a> is available.</p>
 
   <p>Alternatively, you may want to check out the following darcs
@@ -182,21 +184,22 @@ example, the following code will fail to type check:
 runhaskell Setup.lhs configure
 runhaskell Setup.lhs build
 runhaskell Setup.lhs install
-</pre>If you want to customise the installation process, you may
+</pre>If you want to customize the installation process, you may
 want to read more about <a href=
 "http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html">
   installing packages using Cabal</a>.
 
   <h2>Documentation</h2>
 
+  <p>Browse the <strong><a href=
+  "http://www.cs.nott.ac.uk/~wss/repos/IOSpec/dist/doc/html/IOSpec/">
+  Haddock-ed source code</a></strong>.</p>
+
   <p>The examples directory that comes with the sources contains
   several well-documented examples.</p>
 
-  <p>You may want to <a href=
-  "http://www.cs.nott.ac.uk/~wss/repos/IOSpec/dist/doc/html/IOSpec/">
-  browse the Haddock-ed source code</a>.</p>
-
-  <p>The implementation is described in the following papers:</p>
+  <p>The ideas underlying the implementation are described in the
+  following papers:</p>
 
   <ul>
     <li><a href=
