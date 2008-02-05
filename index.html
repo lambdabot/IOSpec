@@ -100,14 +100,14 @@
 
         <h2>Introduction</h2>
 
-        <p>To get a taste of what you can do, consider implementing
-        an 'imperative' queue using a pointers to build a linked
+        <p>To get a taste of what you can do, consider an implemention of
+        an 'imperative' queue that uses pointers to build a linked
         list:</p>
         <pre>
 
 import Test.IOSpec
 
-data Queue = Queue {front :: IORef Cell, back :: IORef Cell}
+data Queue = Queue {front :: IORef Cell, back :: IORef Cell}  
 
 data Cell = Cell Int (IORef Cell) | NULL
 
@@ -130,8 +130,8 @@ dequeue :: Queue -&gt; IOSpec IORefS (Maybe Int)
   values of type <code>IOSpec MVarS a</code> correspond to IO
   computations using just MVars.</p>
 
-  <p>These specifications are pure functions, running on a pure
-  <a href=
+  <p>These specifications are pure functions, running on a pure <a
+  href=
   "http://www.cs.nott.ac.uk/~wss/repos/IOSpec/dist/doc/html/IOSpec/Test-IOSpec-VirtualMachine.html">
   Virtual Machine</a>, that behave the same as their IO
   counterparts. Using tools such as <a href=
@@ -139,8 +139,30 @@ dequeue :: Queue -&gt; IOSpec IORefS (Maybe Int)
   the <a href=
   "http://www.haskell.org/ghc/docs/latest/html/users_guide/ghci-debugger.html">
   GHCi debugger</a> we can test and debug our implementation of
-  queues <em>as if it was pure</em>. Once we are satisfied with our
-  implementation, we can import <a href=
+  queues <em>as if it was pure</em>. For example, we may want to
+  check that the following property holds:
+<pre>
+
+fifoProp :: [Int] -> Bool
+fifoProp xs = evalIOSpec enqDeq singleThreaded == Done xs
+  where
+  enqDeq :: IOSpec IORefS [Int]
+  enqDeq = do
+    q <- emptyQueue
+    forM_ xs (enqueue q)
+    unfoldM dequeue q
+
+</pre>
+
+  That is, starting from an empty queue, enqueuing and subsequently
+  dequeuing any list of integers should return the original list.
+  Note that this property does <em>not</em> require
+  <code>unsafePerformIO</code> or any such hacks: the
+  <code>evalIOSpec</code> function is entirely pure. It is
+  parameterized by the scheduler, allowing you to test your code
+  with different scheduling algorithms to maximize code
+  coverage. Once we are satisfied with our implementation, we can
+  import <a href=
   "http://haskell.cs.yale.edu/ghc/docs/latest/html/libraries/base/Data-IORef.html">
   Data.IORef</a> and use real IORefs, instead of the pure
   specification provided by IOSpec.</p>
@@ -149,20 +171,21 @@ dequeue :: Queue -&gt; IOSpec IORefS (Maybe Int)
   pure specifications of concurrency, STM, and teletype primitives.
   These specifications can be combined as you see fit: you can
   define your own <code>IOSpec</code> monad <em>&agrave; la
-  carte</em>. For example, concurrent code may want use MVars and
-  <code>forkIO</code>:</p>
-  <pre>
-type Concurrent a = IOSpec (MVarS :+: ForkS) a
-</pre>Functions of type <code>Concurrent a</code> may use certain
-IO functions, such as <code>newEmptyMVar</code> or
-<code>forkIO</code>, but not functions such as <code>putStr</code>.
-You may want to <a href=
-"http://www.cs.nott.ac.uk/~wss/repos/IOSpec/dist/doc/html/IOSpec/">
+  carte</em>. For example, when writing concurrent code you may want
+  use just MVars and <code>forkIO</code>:</p>
+
+<pre> type Concurrent a = IOSpec (MVarS :+: ForkS) a </pre>
+
+Functions of type <code>Concurrent a</code> may use IO functions
+  such as <code>newEmptyMVar</code> or <code>forkIO</code>. But
+  using <code>putStr</code> in the <code>Concurrent</code> monad,
+  for example, will cause a type error.  You may want to <a href=
+  "http://www.cs.nott.ac.uk/~wss/repos/IOSpec/dist/doc/html/IOSpec/">
   browse the API</a> to get a better idea of how the library is
   organized.
 
   <p>Haskell's careful treatment of IO shows how being <em>precise
-  about effects</em> can help you write more reliable code. I'd
+  about effects</em> can help you write <em>more reliable code</em>. I'd
   like to think that the IOSpec library takes some of these ideas
   one step further.</p>
 
