@@ -109,6 +109,15 @@ revProp xs = evalIOSpec revProg singleThreaded === return (reverse xs)
                reverseQueue q
                queueToList q
 
+fifoProp :: [Int] -> Bool
+fifoProp xs = evalIOSpec enqDeq singleThreaded === return xs
+  where
+  enqDeq :: IOSpec IORefS [Int]
+  enqDeq = do
+    q <- emptyQueue
+    forM_ xs (enqueue q)
+    unfoldM dequeue q
+
 queueProp1 x = evalIOSpec queueProg1 singleThreaded === Done (Just x)
   where
   queueProg1 = do q <- emptyQueue
