@@ -50,6 +50,8 @@ newtype ThreadId  = ThreadId Int deriving (Eq, Show)
 
 instance Arbitrary ThreadId where
   arbitrary                = liftM ThreadId arbitrary
+
+instance CoArbitrary ThreadId where
   coarbitrary (ThreadId k) = coarbitrary k
 
 newtype Scheduler =
@@ -57,8 +59,6 @@ newtype Scheduler =
 
 instance Arbitrary Scheduler where
   arbitrary   = liftM streamSched arbitrary
-  coarbitrary = internalError
-    "Test.IOSpec: no definition of coarbitrary for Schedulers."
 
 instance Show Scheduler where
   show _ = "Test.IOSpec.Scheduler"

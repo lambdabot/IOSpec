@@ -42,7 +42,7 @@ Description:		This package consists of several modules, that give a
 			with the source distribution.
 Category:       	Testing
 Build-Type:		Simple
-Build-Depends:  	base, mtl, QuickCheck < 2.0, Stream
+Build-Depends:  	base, mtl, QuickCheck == 2.*, Stream
 Extensions:		MultiParamTypeClasses
 Ghc-options:		-Wall -fglasgow-exts
 Hs-source-dirs:		src

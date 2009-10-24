@@ -40,15 +40,11 @@ withInput stdin (ReadChar f) = withInput (Stream.tail stdin)
 -- desired specification: that is that for every input the user
 -- enters, every finite prefix of runTT echo input and copy input is
 -- the same.
-echoProp :: Int -> Stream.Stream Char -> Property
-echoProp n input =
-  n > 0 ==>
+echoProp :: Stream.Stream Char -> Property
+echoProp input =
+    forAll (choose (1,10000)) $ \n ->
     takeOutput n (withInput input (evalIOSpec echo singleThreaded))
     == takeOutput n (withInput input copy)
-
-instance Arbitrary Char where
-  arbitrary = choose ('a','z')
-  coarbitrary = variant . ord
 
 main = do
   Prelude.putStrLn "Testing echo..."

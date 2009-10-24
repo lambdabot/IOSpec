@@ -289,7 +289,6 @@ instance Arbitrary Sudoku where
   arbitrary  = do
     xs <- arbitrary
     return (Sudoku $ blankOut xs (concat solution))
-  coarbitrary = error "No instance coarbitrary for Sudoku grids"
 
 blankOut :: [Int] -> [Value] -> [[Value]]
 blankOut [] grid     = chop (boxsize * boxsize) grid
