@@ -216,6 +216,14 @@ instance Monad Effect where
   (Print c t) >>= f = Print c (t >>= f)
   (Fail msg) >>= _ = Fail msg
 
+instance Eq a => Eq (Effect a) where
+  (Done x) == (Done y) = x == y
+  (ReadChar f) == (ReadChar g) =
+    all (\x -> f x == g x) [minBound .. maxBound]
+  (Print c t) == (Print d u) = c == d && t == u
+  (Fail s) == (Fail t) = s == t
+  _ == _ = False
+
 -- $schedulerDoc
 --
 -- There are two example scheduling algorithms 'roundRobin' and
