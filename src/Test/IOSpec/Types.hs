@@ -1,4 +1,4 @@
-{-# LANGUAGE OverlappingInstances #-}
+{-# LANGUAGE OverlappingInstances, TypeOperators, FlexibleInstances #-}
 -- | This module contains the basic data types underlying the
 -- 'IOSpec' library. Most of the types and classes in this module
 -- are described in

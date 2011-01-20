@@ -1,3 +1,5 @@
+{-# LANGUAGE ExistentialQuantification, TypeOperators #-}
+
 -- | The virtual machine on which the specifications execute.
 module Test.IOSpec.VirtualMachine
   (

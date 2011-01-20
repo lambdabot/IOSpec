@@ -1,3 +1,5 @@
+{-# LANGUAGE ExistentialQuantification, FlexibleContexts #-}
+
 module Test.IOSpec.STM
    (
    -- * The specification of STM

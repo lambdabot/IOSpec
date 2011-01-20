@@ -1,3 +1,4 @@
+{-# LANGUAGE EmptyDataDecls #-}
 -- | This module contains a few type signatures to help replace pure
 -- specifications by their effectful counterparts.
 module Test.IOSpec.Surrogate

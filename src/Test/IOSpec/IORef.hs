@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -- | A pure specification of mutable variables.
 module Test.IOSpec.IORef
    (
