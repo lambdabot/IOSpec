@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, TypeOperators #-}
 -- | A pure specification of getChar and putChar.
 module Test.IOSpec.Teletype
    (

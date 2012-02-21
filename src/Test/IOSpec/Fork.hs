@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification, FlexibleContexts #-}
+{-# LANGUAGE ExistentialQuantification, FlexibleContexts, TypeOperators #-}
 -- | A pure specification of 'forkIO'.
 module Test.IOSpec.Fork
    (

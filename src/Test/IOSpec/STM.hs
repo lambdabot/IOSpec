@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification, FlexibleContexts #-}
+{-# LANGUAGE ExistentialQuantification, FlexibleContexts, TypeOperators #-}
 
 module Test.IOSpec.STM
    (

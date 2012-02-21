@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, TypeOperators #-}
 -- | A pure specification of basic operations on MVars.
 
 module Test.IOSpec.MVar
