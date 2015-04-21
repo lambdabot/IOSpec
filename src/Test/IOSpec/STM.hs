@@ -23,6 +23,7 @@ import Test.IOSpec.Types
 import Data.Dynamic
 import Data.Maybe (fromJust)
 import Control.Monad.State
+import Control.Monad (ap)
 
 -- The 'STMS' data type and its instances.
 --
@@ -67,14 +68,18 @@ instance Functor STM where
   fmap _ Retry              = Retry
   fmap f (OrElse io1 io2)   = OrElse (fmap f io1) (fmap f io2)
 
+instance Applicative STM where
+  pure  = STMReturn
+  (<*>) = ap
+
 instance Monad STM where
-    return                = STMReturn
-    STMReturn a >>= f     = f a
-    NewTVar d g >>= f     = NewTVar d (\l -> g l >>= f)
-    ReadTVar l g >>= f    = ReadTVar l (\d -> g d >>= f)
-    WriteTVar l d p >>= f = WriteTVar l d (p >>= f)
-    Retry >>= _           = Retry
-    OrElse p q >>= f      = OrElse (p >>= f) (q >>= f)
+  return                = STMReturn
+  STMReturn a >>= f     = f a
+  NewTVar d g >>= f     = NewTVar d (\l -> g l >>= f)
+  ReadTVar l g >>= f    = ReadTVar l (\d -> g d >>= f)
+  WriteTVar l d p >>= f = WriteTVar l d (p >>= f)
+  Retry >>= _           = Retry
+  OrElse p q >>= f      = OrElse (p >>= f) (q >>= f)
 
 -- | A 'TVar' is a shared, mutable variable used by STM.
 newtype TVar a = TVar Loc

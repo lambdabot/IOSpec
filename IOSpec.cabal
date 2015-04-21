@@ -1,8 +1,8 @@
 Name:		        IOSpec
-Version:        	0.2.5
+Version:        	0.2.6
 License:        	BSD3
 License-file:		LICENSE
-Author:			Wouter Swierstra, Yusaku Hashimoto
+Author:			Wouter Swierstra, Yusaku Hashimoto, Nikolay Amiantov
 Maintainer:     	Wouter Swierstra <wouter.swierstra@gmail.com>
 Synopsis:       	A pure specification of the IO monad.
 Description:		This package consists of several modules, that give a
@@ -41,7 +41,7 @@ Description:		This package consists of several modules, that give a
 			with the source distribution.
 Category:       	Testing
 Build-Type:		Simple
-Build-Depends:  	base >= 2 && < 5, mtl, QuickCheck >= 2 && < 3, Stream
+Build-Depends:  	base >= 4.8.0.0 && < 5, mtl, QuickCheck >= 2 && < 3, Stream
 Extensions:		MultiParamTypeClasses, OverlappingInstances
 Ghc-options:		-Wall
 Hs-source-dirs:		src

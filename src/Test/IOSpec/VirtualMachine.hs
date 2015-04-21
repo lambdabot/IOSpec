@@ -43,6 +43,7 @@ import Data.List
 import qualified Data.Stream as Stream
 import Test.IOSpec.Types
 import Test.QuickCheck
+import Control.Monad (ap)
 
 type Data         = Dynamic
 type Loc          = Int
@@ -210,6 +211,10 @@ instance Functor Effect where
   fmap f (ReadChar t) = ReadChar (\c -> fmap f (t c))
   fmap f (Print c t) = Print c (fmap f t)
   fmap _ (Fail msg) = Fail msg
+
+instance Applicative Effect where
+  pure = Done
+  (<*>) = ap
 
 instance Monad Effect where
   return = Done

@@ -15,6 +15,8 @@ module Test.IOSpec.Types
   , inject
   ) where
 
+import Control.Monad (ap)
+
 -- | A value of type 'IOSpec' @f@ @a@ is either a pure value of type @a@
 -- or some effect, determined by @f@. Crucially, 'IOSpec' @f@ is a
 -- monad, provided @f@ is a functor.
@@ -25,6 +27,10 @@ data IOSpec f a =
 instance (Functor f) => Functor (IOSpec f) where
   fmap f (Pure x)   = Pure (f x)
   fmap f (Impure t) = Impure (fmap (fmap f) t)
+
+instance (Functor f) => Applicative (IOSpec f) where
+  pure             = Pure
+  (<*>)            = ap
 
 instance (Functor f) => Monad (IOSpec f) where
   return           = Pure
