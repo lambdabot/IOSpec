@@ -61,7 +61,7 @@ instance Executable IORefS where
   step (NewIORef d t)     = do loc <- alloc
                                updateHeap loc d
                                return (Step (t loc))
-  step (ReadIORef l t)    = do Just d <- lookupHeap l
+  step (ReadIORef l t)    = do lookupHeap l >>= \(Just d) -> do
                                return (Step (t d))
   step (WriteIORef l d t) = do updateHeap l d
                                return (Step t)

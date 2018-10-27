@@ -122,7 +122,7 @@ executeSTM (NewTVar d io)     = do
   updateHeap loc d
   executeSTM (io loc)
 executeSTM (ReadTVar l io)    = do
-  (Just d) <- lookupHeap l
+  lookupHeap l >>= \(Just d) -> do
   executeSTM (io d)
 executeSTM (WriteTVar l d io) = do
   updateHeap l d
