@@ -2,7 +2,7 @@
 -- | This module contains the basic data types underlying the
 -- 'IOSpec' library. Most of the types and classes in this module
 -- are described in
--- <http://www.cs.nott.ac.uk/~wss/Publications/DataTypesALaCarte.pdf>.
+-- <https://www.cs.ru.nl/~W.Swierstra/Publications/DataTypesALaCarte.pdf>
 module Test.IOSpec.Types
   (
   -- * The 'IOSpec' type.
