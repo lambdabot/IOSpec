@@ -1,5 +1,6 @@
-IOSpec version 0.2
-  Author: Wouter Swierstra <wss@cs.nott.ac.uk>
+IOSpec version 0.3.1.1
+  Author: Wouter Swierstra <w.s.swierstra@uu.nl>
+  Maintainer: Bertram Felgenhauer <int-e@gmx.de>
 
 IOSpec provides a library containing pure, executable specifications
 of a few functions from the IO monad. 
@@ -10,18 +11,18 @@ Build instructions:
     $ runhaskell Setup.lhs build
     $ runhaskell Setup.lhs install
 
-See http://www.haskell.org/ghc/docs/latest/html/Cabal/builders.html
-for more instructions.
+For further instructions, see:
+    https://www.haskell.org/cabal/users-guide/installing-packages.html#building-and-installing-packages
 
 Documentation:
 
 Please have a look at the latest documentation available from:
-  http://www.cs.nott.ac.uk/~wss/repos/IOSpec
+    https://hackage.haskell.org/package/IOSpec
 
 To build the Haddock API execute the following command:
     $ runhaskell Setup.lhs haddock
 
-This will require Haddock 2.0
+This will require Haddock 2.0.
 
 Check out the examples directory for the following examples:
 
