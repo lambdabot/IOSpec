@@ -2,7 +2,7 @@ Name:            IOSpec
 Version:         0.3.1.1
 License:         BSD3
 License-file:    LICENSE
-Cabal-Version:   >= 1.6
+Cabal-Version:   >= 1.8
 Author:          Wouter Swierstra,
                  Yusaku Hashimoto,
                  Nikolay Amiantov,
