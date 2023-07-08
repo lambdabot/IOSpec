@@ -43,7 +43,7 @@ import Data.List
 import qualified Data.Stream as Stream
 import Test.IOSpec.Types
 import Test.QuickCheck
-import Control.Monad (ap)
+import Control.Monad (liftM, ap)
 
 type Data         = Dynamic
 type Loc          = Int
