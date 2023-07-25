@@ -1,8 +1,8 @@
 Name:            IOSpec
-Version:         0.3.1.1
+Version:         0.3.1.2
 License:         BSD3
 License-file:    LICENSE
-Cabal-Version:   >= 1.8
+Cabal-Version:   >= 1.10
 Author:          Wouter Swierstra,
                  Yusaku Hashimoto,
                  Nikolay Amiantov,
@@ -53,10 +53,18 @@ Source-Repository head
 
 Library
     Build-Depends:    base >= 4.8.0.0 && < 5
-      , mtl
+      , mtl >= 2 && < 3
       , QuickCheck >= 2 && < 3
-      , Stream
-    Extensions:       MultiParamTypeClasses, OverlappingInstances
+      , Stream < 1
+    Default-Language:   Haskell98
+    Default-Extensions: MultiParamTypeClasses
+       , OverlappingInstances
+    Other-Extensions:   DeriveDataTypeable
+       , EmptyDataDecls
+       , ExistentialQuantification
+       , FlexibleInstances
+       , FlexibleContexts
+       , TypeOperators
     Ghc-options:      -Wall
     Hs-source-dirs:   src
     Exposed-modules:  Test.IOSpec
